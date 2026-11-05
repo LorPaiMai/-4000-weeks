@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10131b">
 <title>4,000 Weeks</title>
+ <link rel="manifest" href="./manifest.webmanifest">
+ 
 <style>
 :root{color-scheme:dark;--bg:#10131b;--panel:#1a1f2b;--muted:#aab2c2;--text:#f4f6fb;--past:#78849a;--current:#f4c95d;--future:#30394a;--accent:#9db7ff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,sans-serif}
@@ -83,4 +85,12 @@ $('calc').addEventListener('click',render);
 $('jump').addEventListener('click',()=>{if(!$('birth').value){alert('กรุณากรอกวันเกิดก่อน');return}render();$('calendarPanel').scrollIntoView({behavior:'smooth',block:'start'})});
 const saved=localStorage.getItem('4000weeks_birth');if(saved){$('birth').value=saved;render()}
 </script>
+ <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js");
+    });
+  }
+ </script>
+ 
 </body></html>
