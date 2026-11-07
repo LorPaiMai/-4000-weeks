@@ -33,3 +33,198 @@ button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
 .stat b{display:block;font-size:20px}
 .stat span{font-size:11px;color:var(--muted)}
 .progress{height:8px;background:#30394a;border-radius:20px;overflow:hidden;margin-top:10px}
+.progress>i{display:block;height:100%;background:var(--accent);width:0}
+.sleep-bar{display:flex;height:12px;border-radius:20px;overflow:hidden;margin-top:12px;background:#30394a}
+.sleep-bar .sleep-part{background:var(--sleep)}
+.sleep-bar .awake-part{background:var(--accent)}
+#sleepSummary{margin:10px 0 0}
+#calendarPanel{scroll-margin-top:170px}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#grid{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:3px;margin-top:12px}
+.week{aspect-ratio:1;border-radius:3px;min-width:0;border:0;padding:0;background:linear-gradient(to right,var(--sleep) 0 var(--sleep-share),var(--week-base) var(--sleep-share) 100%)}
+.week.past{--week-base:var(--past)}
+.week.current{--week-base:var(--current);outline:2px solid white;outline-offset:1px}
+.week.future{--week-base:var(--future)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
+.legend-item{display:inline-flex;align-items:center;gap:5px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--future)}
+.dot.p{background:var(--past)}
+.dot.c{background:var(--current)}
+.dot.s{background:var(--sleep)}
+.dot.a{background:var(--accent)}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+@media(max-width:420px){
+  main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}
+  .stat b{font-size:17px}
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>4,000 Weeks</h1>
+<div class="sub">หนึ่งช่องแทนหนึ่งสัปดาห์ · เป็นการประมาณ ไม่ใช่การทำนายวันตาย</div>
+</header>
+
+<section class="panel">
+<label for="birth">วันเกิดของคุณ</label>
+<input id="birth" type="date">
+<div class="actions">
+<button class="primary" id="calc">คำนวณ</button>
+<button id="jump">ไปยังสัปดาห์ปัจจุบัน</button>
+</div>
+<div class="stats">
+<div class="stat"><b id="elapsed">—</b><span>สัปดาห์ที่ผ่านมา</span></div>
+<div class="stat"><b id="left">—</b><span>สัปดาห์ที่เหลือ*</span></div>
+<div class="stat"><b id="percent">—</b><span>ผ่านไปแล้ว</span></div>
+</div>
+<div class="progress"><i id="bar"></i></div>
+</section>
+
+<section class="panel" aria-labelledby="sleepTitle">
+<b id="sleepTitle">เวลานอนใน 4,000 สัปดาห์</b>
+<p class="sub">เลือกเวลานอนเฉลี่ยต่อวัน ทุกช่องในปฏิทินจะแสดงส่วนที่เป็นเวลานอน</p>
+<label for="sleepHours">คุณนอนวันละกี่ชั่วโมง?</label>
+<select id="sleepHours">
+  <option value="2">2 ชั่วโมง</option>
+  <option value="3">3 ชั่วโมง</option>
+  <option value="4">4 ชั่วโมง</option>
+  <option value="5">5 ชั่วโมง</option>
+  <option value="6">6 ชั่วโมง</option>
+  <option value="7">7 ชั่วโมง</option>
+  <option value="8" selected>8 ชั่วโมง</option>
+  <option value="9">9 ชั่วโมง</option>
+  <option value="10">10 ชั่วโมง</option>
+</select>
+<div class="stats">
+  <div class="stat"><b id="sleepWeeks">—</b><span>สัปดาห์ที่ใช้นอน ตลอด 4,000 สัปดาห์*</span></div>
+  <div class="stat"><b id="awakeWeeks">—</b><span>สัปดาห์ที่ตื่น ตลอด 4,000 สัปดาห์*</span></div>
+  <div class="stat"><b id="sleepSoFar">—</b><span>สัปดาห์ที่ใช้นอนไปแล้ว*</span></div>
+</div>
+<div class="sleep-bar" role="img" aria-label="สัดส่วนเวลานอนและเวลาตื่น">
+  <div class="sleep-part" id="sleepBar"></div>
+  <div class="awake-part" id="awakeBar"></div>
+</div>
+<p class="note" id="sleepSummary"></p>
+<p class="note">ตัวเลขเป็นเวลานอนที่แปลงเป็นหน่วยสัปดาห์ โดยสมมติว่านอนเท่ากันทุกวัน ไม่ใช่การหักสัปดาห์จริงออกจากอายุ เปลี่ยนค่าได้ตลอดเวลา</p>
+</section>
+
+<section class="panel" id="calendarPanel">
+<div class="calendar-head"><b>ปฏิทิน 4,000 สัปดาห์</b><span class="sub" id="range">กรอกวันเกิดเพื่อเริ่ม</span></div>
+<div id="grid" role="img" aria-label="ปฏิทิน 4,000 สัปดาห์ แต่ละช่องคือหนึ่งสัปดาห์ ส่วนสีม่วงคือเวลานอน"></div>
+<div class="legend">
+  <span class="legend-item"><i class="dot p"></i>ผ่านมาแล้ว</span>
+  <span class="legend-item"><i class="dot c"></i>สัปดาห์ปัจจุบัน</span>
+  <span class="legend-item"><i class="dot"></i>ยังไม่ถึง</span>
+  <span class="legend-item"><i class="dot s"></i>ส่วนที่เป็นเวลานอน</span>
+</div>
+</section>
+
+<p class="note">*คำนวณโดยสมมติอายุ 4,000 สัปดาห์ (ประมาณ 76.7 ปี) อายุจริงไม่สามารถระบุล่วงหน้าได้ ข้อมูลวันเกิดและชั่วโมงนอนเก็บไว้ในเบราว์เซอร์บนอุปกรณ์นี้</p>
+</main>
+
+<script>
+const $=id=>document.getElementById(id), total=4000, weekMs=7*24*60*60*1000, weeksPerYear=365.25/7;
+let currentWeek=null;
+
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+const fmt=(n,d=0)=>n.toLocaleString('th-TH',{maximumFractionDigits:d});
+
+function dateAtMidnight(v){
+  const [y,m,d]=v.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+
+/* เปลี่ยนชั่วโมงนอน: อัปเดตตัวเลขกับตัวแปร CSS เท่านั้น ไม่สร้างตาราง 4,000 ช่องใหม่ */
+function updateSleep(){
+  const hours=Number($('sleepHours').value);
+  const share=hours/24*100;
+  const sleepAll=total*hours/24;
+
+  $('sleepWeeks').textContent=fmt(sleepAll);
+  $('awakeWeeks').textContent=fmt(total-sleepAll);
+  $('sleepSoFar').textContent=currentWeek===null?'—':fmt(Math.min(currentWeek,total)*hours/24);
+  $('sleepBar').style.width=share+'%';
+  $('awakeBar').style.width=(100-share)+'%';
+  $('sleepSummary').textContent='นอนวันละ '+hours+' ชั่วโมง ≈ '+fmt(sleepAll/weeksPerYear,1)+' ปี จาก '+fmt(total/weeksPerYear,1)+' ปี';
+  document.documentElement.style.setProperty('--sleep-share',share+'%');
+
+  store.set('4000weeks_sleep_hours',String(hours));
+}
+
+function renderGrid(){
+  const grid=$('grid');
+  grid.innerHTML='';
+  if(currentWeek===null)return;
+  const frag=document.createDocumentFragment();
+
+  for(let i=0;i<total;i++){
+    const cell=document.createElement('div');
+    cell.className='week '+(i<currentWeek?'past':i===currentWeek?'current':'future');
+    cell.title='สัปดาห์ที่ '+(i+1);
+    frag.appendChild(cell);
+  }
+  grid.appendChild(frag);
+}
+
+function render(){
+  const v=$('birth').value;
+  if(!v)return;
+
+  const born=dateAtMidnight(v), now=new Date();
+  now.setHours(0,0,0,0);
+
+  if(born>now){
+    alert('วันเกิดต้องไม่อยู่ในอนาคต');
+    return;
+  }
+
+  currentWeek=Math.floor((now-born)/weekMs);
+  const left=Math.max(0,total-currentWeek);
+  const pct=Math.min(100,currentWeek/total*100);
+
+  $('elapsed').textContent=fmt(currentWeek);
+  $('left').textContent=fmt(left);
+  $('percent').textContent=pct.toFixed(1)+'%';
+  $('bar').style.width=pct+'%';
+  $('range').textContent='สัปดาห์ที่ '+fmt(Math.min(currentWeek+1,total))+' จาก 4,000';
+
+  store.set('4000weeks_birth',v);
+  updateSleep();
+  renderGrid();
+}
+
+$('calc').addEventListener('click',render);
+$('sleepHours').addEventListener('change',updateSleep);
+$('jump').addEventListener('click',()=>{
+  if(!$('birth').value){
+    alert('กรุณากรอกวันเกิดก่อน');
+    return;
+  }
+  render();
+  $('calendarPanel').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+const savedSleep=Number(store.get('4000weeks_sleep_hours'));
+if(savedSleep>=2 && savedSleep<=10){
+  $('sleepHours').value=String(savedSleep);
+}
+updateSleep();
+
+const savedBirth=store.get('4000weeks_birth');
+if(savedBirth){
+  $('birth').value=savedBirth;
+  render();
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+</script>
+</body>
+</html>
