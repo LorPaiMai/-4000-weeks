@@ -5,37 +5,69 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10131b">
 <title>4,000 Weeks</title>
- <link rel="manifest" href="./manifest.webmanifest">
- 
+<link rel="manifest" href="./manifest.webmanifest">
+
 <style>
-:root{color-scheme:dark;--bg:#10131b;--panel:#1a1f2b;--muted:#aab2c2;--text:#f4f6fb;--past:#78849a;--current:#f4c95d;--future:#30394a;--accent:#9db7ff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,sans-serif}
+:root{
+  color-scheme:dark;
+  --bg:#10131b;--panel:#1a1f2b;--muted:#aab2c2;--text:#f4f6fb;
+  --past:#78849a;--current:#f4c95d;--future:#30394a;
+  --accent:#9db7ff;--sleep:#123b70;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,sans-serif}
 main{max-width:760px;margin:auto;padding:14px}
 header{position:sticky;top:0;z-index:5;background:rgba(16,19,27,.96);backdrop-filter:blur(10px);padding:10px 0 12px;border-bottom:1px solid #303747}
-h1{font-size:22px;margin:0 0 3px}.sub{font-size:13px;color:var(--muted)}
+h1{font-size:22px;margin:0 0 3px}
+.sub{font-size:13px;color:var(--muted)}
 .panel{background:var(--panel);border:1px solid #303747;border-radius:14px;padding:13px;margin:12px 0}
 label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-input,button{font:inherit;border-radius:10px;border:1px solid #46516a;padding:11px;background:#111722;color:var(--text)}
-input{width:100%}button{cursor:pointer;background:#29344a}button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button{flex:1;min-width:130px}
+input,select,button{font:inherit;border-radius:10px;border:1px solid #46516a;padding:11px;background:#111722;color:var(--text)}
+input,select{width:100%}
+button{cursor:pointer;background:#29344a}
+button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.actions button{flex:1;min-width:130px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.stat{background:#111722;border-radius:10px;padding:9px}.stat b{display:block;font-size:20px}.stat span{font-size:11px;color:var(--muted)}
-.progress{height:8px;background:#30394a;border-radius:20px;overflow:hidden;margin-top:10px}.progress>i{display:block;height:100%;background:var(--accent);width:0}
-#calendarPanel{scroll-margin-top:170px}.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.stat{background:#111722;border-radius:10px;padding:9px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:11px;color:var(--muted)}
+.progress{height:8px;background:#30394a;border-radius:20px;overflow:hidden;margin-top:10px}
+.progress>i{display:block;height:100%;background:var(--accent);width:0}
+.sleep-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.sleep-stat{background:#111722;border-radius:10px;padding:10px}
+.sleep-stat b{display:block;font-size:20px}
+.sleep-stat span{font-size:11px;color:var(--muted)}
+.sleep-bar{display:flex;height:12px;border-radius:20px;overflow:hidden;margin-top:12px;background:#30394a;gap:0}
+.sleep-bar .sleep-part{background:var(--sleep)}
+.sleep-bar .awake-part{background:#9db7ff}
+#calendarPanel{scroll-margin-top:170px}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 #grid{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:3px;margin-top:12px}
-.week{aspect-ratio:1;border-radius:3px;background:var(--future);min-width:0;border:0;padding:0}
-.week.past{background:var(--past)}.week.current{background:var(--current);outline:2px solid white;outline-offset:1px}
+.week{aspect-ratio:1;border-radius:3px;min-width:0;border:0;padding:0;background:linear-gradient(to right,var(--sleep) 0 var(--sleep-share),var(--week-base) var(--sleep-share) 100%)}
+.week.past{--week-base:var(--past)}
+.week.current{--week-base:var(--current);outline:2px solid white;outline-offset:1px}
+.week.future{--week-base:var(--future)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
-.dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;background:var(--future)}.dot.p{background:var(--past)}.dot.c{background:var(--current)}
+.legend-item{display:inline-flex;align-items:center;gap:5px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--future)}
+.dot.p{background:var(--past)}
+.dot.c{background:var(--current)}
+.dot.s{background:var(--sleep)}
 .note{font-size:12px;color:var(--muted);line-height:1.5}
-@media(max-width:420px){main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}.stat b{font-size:17px}}
+@media(max-width:420px){
+  main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}
+  .stat b{font-size:17px}.sleep-stat b{font-size:18px}
+}
 </style>
 </head>
 <body>
 <main>
 <header>
-<h1>4,000 Weeks</h1><div class="sub">หนึ่งช่องแทนหนึ่งสัปดาห์ · เป็นการประมาณ ไม่ใช่การทำนายวันตาย</div>
+<h1>4,000 Weeks</h1>
+<div class="sub">หนึ่งช่องแทนหนึ่งสัปดาห์ · เป็นการประมาณ ไม่ใช่การทำนายวันตาย</div>
 </header>
+
 <section class="panel">
 <label for="birth">วันเกิดของคุณ</label>
 <input id="birth" type="date">
@@ -50,47 +82,145 @@ input{width:100%}button{cursor:pointer;background:#29344a}button.primary{backgro
 </div>
 <div class="progress"><i id="bar"></i></div>
 </section>
+
+<section class="panel" aria-labelledby="sleepTitle">
+<b id="sleepTitle">Sleep Time Deduction</b>
+<p class="sub">เลือกเวลานอนเฉลี่ยต่อวัน เพื่อแสดงสัดส่วนเวลานอนในทุกสัปดาห์</p>
+<label for="sleepHours">คุณนอนวันละกี่ชั่วโมง?</label>
+<select id="sleepHours">
+  <option value="2">2 ชั่วโมง</option>
+  <option value="3">3 ชั่วโมง</option>
+  <option value="4">4 ชั่วโมง</option>
+  <option value="5">5 ชั่วโมง</option>
+  <option value="6" selected>6 ชั่วโมง</option>
+  <option value="7">7 ชั่วโมง</option>
+  <option value="8">8 ชั่วโมง</option>
+  <option value="9">9 ชั่วโมง</option>
+  <option value="10">10 ชั่วโมง</option>
+</select>
+<div class="sleep-stats">
+  <div class="sleep-stat"><b id="sleepWeeks">1,000</b><span>เวลานอนตลอด 4,000 สัปดาห์ (เทียบเท่าสัปดาห์)</span></div>
+  <div class="sleep-stat"><b id="awakeWeeks">3,000</b><span>เวลาตื่นตลอด 4,000 สัปดาห์ (เทียบเท่าสัปดาห์)</span></div>
+</div>
+<div class="sleep-bar" role="img" aria-label="สัดส่วนเวลานอนและเวลาตื่น">
+  <div class="sleep-part" id="sleepBar"></div>
+  <div class="awake-part" id="awakeBar"></div>
+</div>
+<div class="legend">
+  <span class="legend-item"><i class="dot s"></i>Deep Blue = เวลานอน</span>
+  <span class="legend-item"><i class="dot" style="background:#9db7ff"></i>เวลาตื่น</span>
+</div>
+<p class="note">ตัวเลขนี้คำนวณจากชั่วโมงนอนเฉลี่ยที่เลือก โดยสมมติอายุ 4,000 สัปดาห์ ไม่ใช่การหักสัปดาห์จริงออกจากอายุ และสามารถเปลี่ยนค่าได้ตลอดเวลา</p>
+</section>
+
 <section class="panel" id="calendarPanel">
 <div class="calendar-head"><b>ปฏิทิน 4,000 สัปดาห์</b><span class="sub" id="range">กรอกวันเกิดเพื่อเริ่ม</span></div>
 <div id="grid" aria-label="ปฏิทิน 4000 สัปดาห์"></div>
-<div class="legend"><span><i class="dot p"></i>ผ่านมาแล้ว</span><span><i class="dot c"></i>สัปดาห์ปัจจุบัน</span><span><i class="dot"></i>ยังไม่ถึง</span></div>
+<div class="legend">
+  <span class="legend-item"><i class="dot p"></i>ผ่านมาแล้ว</span>
+  <span class="legend-item"><i class="dot c"></i>สัปดาห์ปัจจุบัน</span>
+  <span class="legend-item"><i class="dot"></i>ยังไม่ถึง</span>
+  <span class="legend-item"><i class="dot s"></i>เวลานอน (Deep Blue)</span>
+</div>
 </section>
-<p class="note">*คำนวณโดยสมมติอายุ 4,000 สัปดาห์ (ประมาณ 76.7 ปี) อายุจริงไม่สามารถระบุล่วงหน้าได้ ข้อมูลวันเกิดเก็บไว้ในเบราว์เซอร์บนอุปกรณ์นี้</p>
+
+<p class="note">*คำนวณโดยสมมติอายุ 4,000 สัปดาห์ (ประมาณ 76.7 ปี) อายุจริงไม่สามารถระบุล่วงหน้าได้ ข้อมูลวันเกิดและชั่วโมงนอนเก็บไว้ในเบราว์เซอร์บนอุปกรณ์นี้</p>
 </main>
+
 <script>
 const $=id=>document.getElementById(id), total=4000, weekMs=7*24*60*60*1000;
 let currentWeek=0;
-function dateAtMidnight(v){const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d)}
-function render(){
- const v=$('birth').value;if(!v)return;
- const born=dateAtMidnight(v), now=new Date();now.setHours(0,0,0,0);
- if(born>now){alert('วันเกิดต้องไม่อยู่ในอนาคต');return}
- currentWeek=Math.floor((now-born)/weekMs);
- const elapsed=Math.min(currentWeek,total), left=Math.max(0,total-currentWeek), pct=Math.min(100,currentWeek/total*100);
- $('elapsed').textContent=currentWeek.toLocaleString('th-TH');
- $('left').textContent=left.toLocaleString('th-TH');
- $('percent').textContent=pct.toFixed(1)+'%';
- $('bar').style.width=pct+'%';
- $('range').textContent='สัปดาห์ที่ '+Math.min(currentWeek+1,total).toLocaleString('th-TH')+' จาก 4,000';
- const grid=$('grid');grid.innerHTML='';
- const frag=document.createDocumentFragment();
- for(let i=0;i<total;i++){
-  const cell=document.createElement('div');cell.className='week'+(i<currentWeek?' past':i===currentWeek?' current':'');
-  cell.title='สัปดาห์ที่ '+(i+1);cell.setAttribute('aria-label','สัปดาห์ที่ '+(i+1));frag.appendChild(cell);
- }
- grid.appendChild(frag);
- localStorage.setItem('4000weeks_birth',v);
+
+function dateAtMidnight(v){
+  const [y,m,d]=v.split('-').map(Number);
+  return new Date(y,m-1,d);
 }
-$('calc').addEventListener('click',render);
-$('jump').addEventListener('click',()=>{if(!$('birth').value){alert('กรุณากรอกวันเกิดก่อน');return}render();$('calendarPanel').scrollIntoView({behavior:'smooth',block:'start'})});
-const saved=localStorage.getItem('4000weeks_birth');if(saved){$('birth').value=saved;render()}
-</script>
- <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js");
-    });
+
+function updateSleep(){
+  const hours=Number($('sleepHours').value);
+  const sleepShare=hours/24*100;
+  const sleepEquivalent=total*hours/24;
+  const awakeEquivalent=total-sleepEquivalent;
+
+  $('sleepWeeks').textContent=sleepEquivalent.toLocaleString('th-TH',{maximumFractionDigits:1});
+  $('awakeWeeks').textContent=awakeEquivalent.toLocaleString('th-TH',{maximumFractionDigits:1});
+  $('sleepBar').style.width=sleepShare+'%';
+  $('awakeBar').style.width=(100-sleepShare)+'%';
+  document.documentElement.style.setProperty('--sleep-share',sleepShare+'%');
+
+  localStorage.setItem('4000weeks_sleep_hours',String(hours));
+  renderGrid();
+}
+
+function renderGrid(){
+  const grid=$('grid');
+  grid.innerHTML='';
+  const frag=document.createDocumentFragment();
+
+  for(let i=0;i<total;i++){
+    const cell=document.createElement('div');
+    const state=i<currentWeek?'past':i===currentWeek?'current':'future';
+    cell.className='week '+state;
+    cell.title='สัปดาห์ที่ '+(i+1)+' · สีน้ำเงินคือเวลานอน';
+    cell.setAttribute('aria-label','สัปดาห์ที่ '+(i+1)+' '+(state==='past'?'ผ่านมาแล้ว':state==='current'?'สัปดาห์ปัจจุบัน':'ยังไม่ถึง')+' ส่วนสีน้ำเงินคือเวลานอน');
+    frag.appendChild(cell);
   }
- </script>
- 
-</body></html>
+  grid.appendChild(frag);
+}
+
+function render(){
+  const v=$('birth').value;
+  if(!v)return;
+
+  const born=dateAtMidnight(v), now=new Date();
+  now.setHours(0,0,0,0);
+
+  if(born>now){
+    alert('วันเกิดต้องไม่อยู่ในอนาคต');
+    return;
+  }
+
+  currentWeek=Math.floor((now-born)/weekMs);
+  const left=Math.max(0,total-currentWeek);
+  const pct=Math.min(100,currentWeek/total*100);
+
+  $('elapsed').textContent=currentWeek.toLocaleString('th-TH');
+  $('left').textContent=left.toLocaleString('th-TH');
+  $('percent').textContent=pct.toFixed(1)+'%';
+  $('bar').style.width=pct+'%';
+  $('range').textContent='สัปดาห์ที่ '+Math.min(currentWeek+1,total).toLocaleString('th-TH')+' จาก 4,000';
+
+  localStorage.setItem('4000weeks_birth',v);
+  renderGrid();
+}
+
+$('calc').addEventListener('click',render);
+$('sleepHours').addEventListener('change',updateSleep);
+$('jump').addEventListener('click',()=>{
+  if(!$('birth').value){
+    alert('กรุณากรอกวันเกิดก่อน');
+    return;
+  }
+  render();
+  $('calendarPanel').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+const savedBirth=localStorage.getItem('4000weeks_birth');
+if(savedBirth){
+  $('birth').value=savedBirth;
+  render();
+}
+const savedSleep=localStorage.getItem('4000weeks_sleep_hours');
+if(savedSleep && Number(savedSleep)>=2 && Number(savedSleep)<=10){
+  $('sleepHours').value=savedSleep;
+}
+updateSleep();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+</script>
+</body>
+</html>
