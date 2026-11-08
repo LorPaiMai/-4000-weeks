@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10131b">
+<title>วางแผนเวลา · 4,000 Weeks</title>
+<link rel="manifest" href="./manifest.webmanifest">
+
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#10131b;--panel:#1a1f2b;--muted:#aab2c2;--text:#f4f6fb;
+  --past:#4a5468;--current:#f4c95d;--accent:#9db7ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,sans-serif}
+main{max-width:760px;margin:auto;padding:14px}
+header{position:sticky;top:0;z-index:5;background:rgba(16,19,27,.96);backdrop-filter:blur(10px);padding:10px 0 12px;border-bottom:1px solid #303747}
+h1{font-size:22px;margin:0 0 3px}
+.sub{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tabs a{flex:1;text-align:center;padding:9px;border-radius:10px;border:1px solid #46516a;background:#111722;color:var(--text);text-decoration:none;font-size:14px}
+.tabs a.on{background:#d9e3ff;color:#151a25;font-weight:700;border:0}
+.panel{background:var(--panel);border:1px solid #303747;border-radius:14px;padding:13px;margin:12px 0}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+input{font:inherit;border-radius:10px;border:1px solid #46516a;padding:11px;background:#111722;color:var(--text);width:100%}
+input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--accent);height:28px}
+.row{margin-top:14px}
+.row .top{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.row .top label{margin:0;color:var(--text)}
+.row .top b{color:var(--accent);white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat{background:#111722;border-radius:10px;padding:9px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:11px;color:var(--muted)}
+.brow{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:7px 0;border-bottom:1px solid #262d3b}
+.brow:last-child{border-bottom:0}
+.brow span:first-child{display:inline-flex;align-items:center;gap:6px}
+.brow span:last-child{color:var(--muted);text-align:right}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none}
+.dot.s{background:#8b5cf6}.dot.r{background:#b08968}.dot.w{background:#f59e0b}.dot.t{background:#f472b6}.dot.f{background:var(--accent)}
+.dot.p{background:var(--past)}.dot.c{background:var(--current)}
+.dot.b{background:transparent;box-shadow:inset 0 0 0 1px rgba(170,178,194,.5)}
+#grid{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:3px;margin-top:12px}
+.week{aspect-ratio:1;border-radius:3px;min-width:0;background:transparent}
+.week.past{background:var(--past)}
+.week.current{background:var(--current);outline:2px solid white;outline-offset:1px}
+.week.free{background:var(--accent)}
+.week.busy{background:transparent;box-shadow:inset 0 0 0 1px rgba(170,178,194,.22)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
+.legend-item{display:inline-flex;align-items:center;gap:5px}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+.warn{color:#f4c95d}
+@media(max-width:420px){
+  main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}.stat b{font-size:17px}
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>วางแผนเวลา</h1>
+<div class="sub">เวลาที่เหลือจะถูกใช้กับอะไรบ้าง · เป็นการประมาณ ไม่ใช่การทำนาย</div>
+<nav class="tabs"><a href="./">ปฏิทิน</a><a href="./plan.html" class="on">วางแผนเวลา</a></nav>
+</header>
+
+<section class="panel">
+<label for="birth">วันเกิดของคุณ</label>
+<input id="birth" type="date">
+</section>
+
+<section class="panel">
+<b>เวลาที่ต้องใช้ในชีวิตประจำวัน</b>
+<p class="note">การนอนและกิจวัตรเป็นสิ่งที่ร่างกายต้องใช้ ไม่ใช่เวลาที่เสียเปล่า</p>
+
+<div class="row"><div class="top"><label for="sleep">นอน</label><b id="sleepV"></b></div>
+<input id="sleep" type="range" min="2" max="10" step="1" value="8"></div>
+
+<div class="row"><div class="top"><label for="routine">กินข้าวและกิจวัตรส่วนตัว</label><b id="routineV"></b></div>
+<input id="routine" type="range" min="0" max="6" step="0.5" value="2"></div>
+
+<div class="row"><div class="top"><label for="work">ทำงาน</label><b id="workV"></b></div>
+<input id="work" type="range" min="0" max="80" step="1" value="40"></div>
+
+<div class="row"><div class="top"><label for="commute">เดินทางไป-กลับ (เฉพาะวันทำงาน 5 วัน)</label><b id="commuteV"></b></div>
+<input id="commute" type="range" min="0" max="4" step="0.5" value="1"></div>
+
+<div class="row"><div class="top"><label for="until">ทำงานถึงอายุ</label><b id="untilV"></b></div>
+<input id="until" type="range" min="30" max="76" step="1" value="60"></div>
+
+<p class="note warn" id="warn" hidden>รวมแล้วเกิน 168 ชั่วโมงต่อสัปดาห์ ลองลดบางรายการ</p>
+<p class="note" id="weekly"></p>
+</section>
+
+<section class="panel">
+<b>เวลาว่างจริงที่เหลือ</b>
+<div class="stats">
+  <div class="stat"><b id="freeWeeks">—</b><span>สัปดาห์ที่ว่างจริง*</span></div>
+  <div class="stat"><b id="freeYears">—</b><span>เทียบเท่า (ปี)*</span></div>
+  <div class="stat"><b id="freePct">—</b><span>ของเวลาที่เหลือ</span></div>
+</div>
+<div id="breakdown" style="margin-top:10px"></div>
+</section>
+
+<section class="panel">
+<div class="calendar-head"><b>ปฏิทิน 4,000 สัปดาห์</b><span class="sub" id="range">กรอกวันเกิดเพื่อเริ่ม</span></div>
+<div id="grid" role="img" aria-label="ปฏิทิน 4,000 สัปดาห์ ช่องสว่างคือเวลาว่างจริงที่เหลือ ช่องจางคือเวลาที่ใช้กับสิ่งจำเป็น"></div>
+<div class="legend">
+  <span class="legend-item"><i class="dot p"></i>ผ่านมาแล้ว</span>
+  <span class="legend-item"><i class="dot c"></i>สัปดาห์ปัจจุบัน</span>
+  <span class="legend-item"><i class="dot f"></i>เวลาว่างจริง</span>
+  <span class="legend-item"><i class="dot b"></i>ใช้กับสิ่งจำเป็น</span>
+</div>
+</section>
+
+<p class="note">*ประมาณการโดยสมมติอายุ 4,000 สัปดาห์ (ประมาณ 76.7 ปี) และใช้ชีวิตตามค่าเฉลี่ยที่ตั้งไว้ทุกสัปดาห์ ช่องที่จางกระจายเท่าๆ กัน ไม่ได้หมายความว่าสัปดาห์นั้นถูกใช้ไปทั้งสัปดาห์ เวลาว่างไม่จำเป็นต้องใช้ให้คุ้มทุกนาที ข้อมูลเก็บไว้ในเบราว์เซอร์บนอุปกรณ์นี้</p>
+</main>
+
+<script>
+const $=id=>document.getElementById(id), total=4000, weekMs=7*24*60*60*1000, wpy=365.25/7, H=168;
+let currentWeek=null;
+
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+const fmt=(n,d=0)=>n.toLocaleString('th-TH',{maximumFractionDigits:d});
+const val=id=>Number($(id).value);
+
+const fields=[
+  {id:'sleep',key:'4000weeks_sleep_hours',def:8,show:v=>v+' ชม./วัน'},
+  {id:'routine',key:'4000weeks_plan_routine',def:2,show:v=>v+' ชม./วัน'},
+  {id:'work',key:'4000weeks_plan_work',def:40,show:v=>v+' ชม./สัปดาห์'},
+  {id:'commute',key:'4000weeks_plan_commute',def:1,show:v=>v+' ชม./วันทำงาน'},
+  {id:'until',key:'4000weeks_plan_until',def:60,show:v=>'อายุ '+v+' ปี'}
+];
+
+function dateAtMidnight(v){
+  const [y,m,d]=v.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+
+function buildGrid(){
+  const grid=$('grid');
+  grid.innerHTML='';
+  if(currentWeek===null)return;
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<total;i++){
+    const cell=document.createElement('div');
+    cell.className='week';
+    cell.title='สัปดาห์ที่ '+(i+1);
+    frag.appendChild(cell);
+  }
+  grid.appendChild(frag);
+}
+
+/* ช่องที่เหลือ: กระจาย "ว่าง" กับ "ใช้กับสิ่งจำเป็น" เท่าๆ กัน
+   ช่วงที่ยังทำงานใช้สัดส่วนว่าง fw ช่วงหลังเกษียณใช้ fr */
+function paintGrid(workWeeks,fw,fr){
+  const cells=$('grid').children;
+  if(currentWeek===null||cells.length===0)return;
+  let acc=0;
+  for(let i=0;i<cells.length;i++){
+    let cls='week ';
+    if(i<currentWeek){cls+='past';}
+    else{
+      const j=i-currentWeek;
+      acc+=(j<workWeeks?fw:fr);
+      let free=false;
+      if(acc>=1-1e-9){free=true;acc-=1;}
+      cls+=(i===currentWeek?'current':(free?'free':'busy'));
+    }
+    cells[i].className=cls;
+  }
+}
+
+function row(name,weeks,cls){
+  return '<div class="brow"><span><i class="dot '+cls+'"></i>'+name+'</span><span>'+fmt(weeks)+' สัปดาห์ · '+fmt(weeks/wpy,1)+' ปี</span></div>';
+}
+
+function update(){
+  fields.forEach(f=>{
+    const v=val(f.id);
+    $(f.id+'V').textContent=f.show(v);
+    store.set(f.key,String(v));
+  });
+
+  const sleep=val('sleep'), routine=val('routine'), work=val('work'), commute=val('commute'), until=val('until');
+  const base=(sleep+routine)*7;
+  const used=base+work+commute*5;
+  const fw=Math.max(0,H-used)/H, fr=Math.max(0,H-base)/H;
+
+  $('warn').hidden=used<=H;
+  $('weekly').textContent='ใน 1 สัปดาห์ที่ยังทำงาน เหลือเวลาว่าง '+fmt(Math.max(0,H-used),1)+' จาก 168 ชั่วโมง · หลังเลิกทำงาน เหลือ '+fmt(Math.max(0,H-base),1)+' ชั่วโมง';
+
+  if(currentWeek===null){
+    $('freeWeeks').textContent='—';
+    $('freeYears').textContent='—';
+    $('freePct').textContent='—';
+    $('range').textContent='กรอกวันเกิดเพื่อเริ่ม';
+    $('breakdown').innerHTML='<p class="note">กรอกวันเกิดเพื่อดูผลรวมของเวลาที่เหลือ</p>';
+    return;
+  }
+
+  const remaining=Math.max(0,total-currentWeek);
+  const workWeeks=Math.min(remaining,Math.max(0,Math.round(until*wpy)-currentWeek));
+  const restWeeks=remaining-workWeeks;
+
+  const sleepW=remaining*sleep*7/H;
+  const routineW=remaining*routine*7/H;
+  const workW=workWeeks*work/H;
+  const commuteW=workWeeks*commute*5/H;
+  const freeW=workWeeks*fw+restWeeks*fr;
+
+  $('freeWeeks').textContent=fmt(freeW);
+  $('freeYears').textContent=fmt(freeW/wpy,1);
+  $('freePct').textContent=remaining>0?fmt(freeW/remaining*100,1)+'%':'—';
+  $('range').textContent='เหลือ '+fmt(remaining)+' สัปดาห์';
+  $('breakdown').innerHTML=
+    row('นอน',sleepW,'s')+
+    row('กินข้าวและกิจวัตร',routineW,'r')+
+    row('ทำงาน',workW,'w')+
+    row('เดินทาง',commuteW,'t')+
+    row('เวลาว่างจริง',freeW,'f');
+
+  paintGrid(workWeeks,fw,fr);
+}
+
+function setBirth(save){
+  const v=$('birth').value;
+  if(!v){currentWeek=null;buildGrid();update();return;}
+  const born=dateAtMidnight(v), now=new Date();
+  now.setHours(0,0,0,0);
+  if(born>now){alert('วันเกิดต้องไม่อยู่ในอนาคต');return;}
+  currentWeek=Math.floor((now-born)/weekMs);
+  if(save)store.set('4000weeks_birth',v);
+  buildGrid();
+  update();
+}
+
+fields.forEach(f=>{
+  const el=$(f.id), raw=store.get(f.key), n=Number(raw);
+  el.value=(raw!==null&&raw!==''&&isFinite(n)&&n>=Number(el.min)&&n<=Number(el.max))?n:f.def;
+  el.addEventListener('input',update);
+});
+$('birth').addEventListener('change',()=>setBirth(true));
+
+const savedBirth=store.get('4000weeks_birth');
+if(savedBirth){$('birth').value=savedBirth;}
+setBirth(false);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+</script>
+</body>
+  </html>
