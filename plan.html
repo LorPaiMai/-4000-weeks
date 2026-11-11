@@ -359,6 +359,56 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js');
   });
 }
+  /* ปัดซ้าย-ขวาเพื่อสลับหน้า (ยังกดแท็บได้เหมือนเดิม)
+   หน้านี้: ปัดไปทางขวา = กลับหน้าปฏิทิน */
+(function(){
+  const URL_='./', SIGN=1;
+  const main=document.querySelector('main');
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sx=0,sy=0,st=0,ok=false,busy=false;
+
+  try{
+    const s=sessionStorage.getItem('4k_slide');
+    if(s){
+      sessionStorage.removeItem('4k_slide');
+      if(!reduce&&main.animate){
+        main.animate([{opacity:0,transform:'translateX('+(Number(s)*-28)+'px)'},{opacity:1,transform:'none'}],{duration:200,easing:'ease-out'});
+      }
+    }
+  }catch(e){}
+
+  function go(){
+    if(busy)return;
+    busy=true;
+    try{sessionStorage.setItem('4k_slide',String(SIGN));}catch(e){}
+    if(reduce||!main.animate){location.href=URL_;return;}
+    const a=main.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX('+(SIGN*28)+'px)'}],{duration:160,easing:'ease-in',fill:'forwards'});
+    a.onfinish=()=>{location.href=URL_;};
+    setTimeout(()=>{location.href=URL_;},400);
+  }
+
+  window.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1){ok=false;return;}
+    const el=e.target;
+    ok=!(el&&el.closest&&el.closest('input,select,textarea,button,a,label'));
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
+  },{passive:true});
+
+  window.addEventListener('touchend',e=>{
+    if(!ok)return;
+    ok=false;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    if(Date.now()-st>700)return;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2.2)return;
+    if((SIGN<0&&dx<0)||(SIGN>0&&dx>0))go();
+  },{passive:true});
+
+  window.addEventListener('pageshow',e=>{
+    busy=false;
+    if(e.persisted&&main.getAnimations)main.getAnimations().forEach(a=>a.cancel());
+  });
+})();
 </script>
 </body>
 </html>
