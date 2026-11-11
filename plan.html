@@ -3,64 +3,79 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10131b">
+<meta name="theme-color" content="#f7f9fc">
 <title>วางแผนเวลา · 4,000 Weeks</title>
 <link rel="manifest" href="./manifest.webmanifest">
 
 <style>
 :root{
-  color-scheme:dark;
-  --bg:#10131b;--panel:#1a1f2b;--muted:#aab2c2;--text:#f4f6fb;
-  --past:#4a5468;--current:#f4c95d;--accent:#9db7ff;
+  color-scheme:light;
+  --bg:#f7f9fc;--text:#1f2937;--muted:#667085;--line:#dde3ee;--accent:#5b8def;
+  --past:#e6eaf1;--current:#f0b429;
+  --c-sleep:#b7a8e6;--c-routine:#b8cfa0;--c-work:#f2b988;--c-commute:#efa7c0;--c-free:#4aa3e8;
 }
+[hidden]{display:none!important}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,sans-serif}
+html{background:var(--bg)}
+/* พื้นหลังไล่สีฟุ้งๆ: ใช้ radial-gradient ซ้อนกัน เบากว่า blur และไม่กินแรงเครื่อง */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(65% 42% at 6% 4%,#cde7fb 0%,rgba(205,231,251,0) 72%),
+    radial-gradient(55% 38% at 98% 10%,#f6efc4 0%,rgba(246,239,196,0) 72%),
+    radial-gradient(70% 46% at 12% 96%,#d1f1df 0%,rgba(209,241,223,0) 72%),
+    radial-gradient(60% 40% at 100% 100%,#e6ddfa 0%,rgba(230,221,250,0) 72%);
+}
+body{margin:0;color:var(--text);font:16px system-ui,-apple-system,sans-serif}
 main{max-width:760px;margin:auto;padding:14px}
-header{position:sticky;top:0;z-index:5;background:rgba(16,19,27,.96);backdrop-filter:blur(10px);padding:10px 0 12px;border-bottom:1px solid #303747}
+header{position:sticky;top:0;z-index:5;background:rgba(247,249,252,.92);padding:10px 0 12px;border-bottom:1px solid var(--line)}
 h1{font-size:22px;margin:0 0 3px}
 .sub{font-size:13px;color:var(--muted)}
 .tabs{display:flex;gap:8px;margin-top:10px}
-.tabs a{flex:1;text-align:center;padding:9px;border-radius:10px;border:1px solid #46516a;background:#111722;color:var(--text);text-decoration:none;font-size:14px}
-.tabs a.on{background:#d9e3ff;color:#151a25;font-weight:700;border:0}
-.panel{background:var(--panel);border:1px solid #303747;border-radius:14px;padding:13px;margin:12px 0}
+.tabs a{flex:1;text-align:center;padding:9px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.7);color:var(--text);text-decoration:none;font-size:14px}
+.tabs a.on{background:#1f2937;color:#fff;font-weight:700;border-color:#1f2937}
+.panel{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.95);box-shadow:0 6px 24px rgba(60,80,120,.08);border-radius:18px;padding:14px;margin:12px 0}
 label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-input{font:inherit;border-radius:10px;border:1px solid #46516a;padding:11px;background:#111722;color:var(--text);width:100%}
+input{font:inherit;border-radius:12px;border:1px solid var(--line);padding:11px;background:#fff;color:var(--text);width:100%}
 input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--accent);height:28px}
+button.link{font:inherit;font-size:13px;background:none;border:0;color:var(--accent);padding:4px 0 4px 8px;cursor:pointer}
+.birth-line{display:flex;justify-content:space-between;align-items:center;font-size:14px}
 .row{margin-top:14px}
 .row .top{display:flex;justify-content:space-between;gap:8px;font-size:14px}
 .row .top label{margin:0;color:var(--text)}
 .row .top b{color:var(--accent);white-space:nowrap}
-.badge{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 12px;border-radius:12px;background:#111722;border:1px solid #303747}
+.badge{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.85);border:1px solid var(--line)}
 .b-emoji{font-size:26px;line-height:1.1}
 .badge b{font-size:14px}
 .b-line{font-size:13px;margin-top:2px;line-height:1.45}
 .b-who{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
-.b-trade{font-size:11px;color:var(--accent);margin-top:4px;line-height:1.4}
+.b-trade{font-size:11px;color:#2f7cc0;margin-top:4px;line-height:1.4}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.stat{background:#111722;border-radius:10px;padding:9px}
+.stat{background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:12px;padding:9px}
 .stat b{display:block;font-size:20px}
 .stat span{font-size:11px;color:var(--muted)}
-.brow{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:7px 0;border-bottom:1px solid #262d3b}
+.brow{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
 .brow:last-child{border-bottom:0}
 .brow span:first-child{display:inline-flex;align-items:center;gap:6px}
 .brow span:last-child{color:var(--muted);text-align:right}
-.dot{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none}
-.dot.s{background:#8b5cf6}.dot.r{background:#b08968}.dot.w{background:#f59e0b}.dot.t{background:#f472b6}.dot.f{background:var(--accent)}
-.dot.p{background:var(--past)}.dot.c{background:var(--current)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.dot.s{background:var(--c-sleep)}.dot.r{background:var(--c-routine)}.dot.w{background:var(--c-work)}.dot.t{background:var(--c-commute)}.dot.f{background:var(--c-free)}
+.dot.p{background:var(--past);box-shadow:inset 0 0 0 1px #cfd6e2}
+.dot.c{background:var(--current)}
 #grid{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:3px;margin-top:12px}
 .week{aspect-ratio:1;border-radius:3px;min-width:0;background:transparent}
 .week.past{background:var(--past)}
-.week.current{background:var(--current);outline:2px solid white;outline-offset:1px}
-.week.s{background:#8b5cf6}
-.week.r{background:#b08968}
-.week.w{background:#f59e0b}
-.week.t{background:#f472b6}
-.week.f{background:var(--accent)}
+.week.current{background:var(--current);outline:2px solid #1f2937;outline-offset:1px}
+.week.s{background:var(--c-sleep)}
+.week.r{background:var(--c-routine)}
+.week.w{background:var(--c-work)}
+.week.t{background:var(--c-commute)}
+.week.f{background:var(--c-free)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
 .legend-item{display:inline-flex;align-items:center;gap:5px}
 .calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .note{font-size:12px;color:var(--muted);line-height:1.5}
-.warn{color:#f4c95d}
+.warn{color:#b45309}
 @media(max-width:420px){
   main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}.stat b{font-size:17px}
 }
@@ -75,8 +90,14 @@ input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--a
 </header>
 
 <section class="panel">
-<label for="birth">วันเกิดของคุณ</label>
-<input id="birth" type="date">
+<div class="birth-line" id="birthLine" hidden>
+  <span id="birthText"></span>
+  <button type="button" class="link" id="birthEdit">แก้ไข</button>
+</div>
+<div id="birthForm">
+  <label for="birth">วันเกิดของคุณ</label>
+  <input id="birth" type="date">
+</div>
 </section>
 
 <section class="panel">
@@ -89,8 +110,12 @@ input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--a
 <div class="row"><div class="top"><label for="routine">กินข้าวและกิจวัตรส่วนตัว</label><b id="routineV"></b></div>
 <input id="routine" type="range" min="0" max="6" step="0.5" value="2"></div>
 
-<div class="row"><div class="top"><label for="work">ทำงาน</label><b id="workV"></b></div>
-<input id="work" type="range" min="0" max="80" step="1" value="40"></div>
+<div class="row"><div class="top"><label for="workDay">ทำงาน (ชั่วโมงต่อวัน)</label><b id="workDayV"></b></div>
+<input id="workDay" type="range" min="0" max="16" step="0.5" value="8"></div>
+
+<div class="row"><div class="top"><label for="workDays">ทำงานกี่วันต่อสัปดาห์</label><b id="workDaysV"></b></div>
+<input id="workDays" type="range" min="1" max="7" step="1" value="5"></div>
+<p class="note" id="workTotal"></p>
 
 <div class="badge" id="badge" aria-live="polite">
   <div class="b-emoji" id="bEmoji"></div>
@@ -102,13 +127,13 @@ input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--a
   </div>
 </div>
 
-<div class="row"><div class="top"><label for="commute">เดินทางไป-กลับ (เฉพาะวันทำงาน 5 วัน)</label><b id="commuteV"></b></div>
+<div class="row"><div class="top"><label for="commute">เดินทางไป-กลับ (เฉพาะวันที่ทำงาน)</label><b id="commuteV"></b></div>
 <input id="commute" type="range" min="0" max="4" step="0.5" value="1"></div>
 
 <div class="row"><div class="top"><label for="until">ทำงานถึงอายุ</label><b id="untilV"></b></div>
 <input id="until" type="range" min="30" max="76" step="1" value="60"></div>
 
-<p class="note warn" id="warn" hidden>รวมแล้วเกิน 168 ชั่วโมงต่อสัปดาห์ ลองลดบางรายการ</p>
+<p class="note warn" id="warn" hidden></p>
 <p class="note" id="weekly"></p>
 </section>
 
@@ -153,19 +178,20 @@ const val=id=>Number($(id).value);
 const fields=[
   {id:'sleep',key:'4000weeks_sleep_hours',def:8,show:v=>v+' ชม./วัน'},
   {id:'routine',key:'4000weeks_plan_routine',def:2,show:v=>v+' ชม./วัน'},
-  {id:'work',key:'4000weeks_plan_work',def:40,show:v=>v+' ชม./สัปดาห์'},
-  {id:'commute',key:'4000weeks_plan_commute',def:1,show:v=>v+' ชม./วันทำงาน'},
+  {id:'workDay',key:'4000weeks_plan_workday',def:8,show:v=>v+' ชม./วัน'},
+  {id:'workDays',key:'4000weeks_plan_workdays',def:5,show:v=>v+' วัน/สัปดาห์'},
+  {id:'commute',key:'4000weeks_plan_commute',def:1,show:v=>v+' ชม./วันที่ทำงาน'},
   {id:'until',key:'4000weeks_plan_until',def:60,show:v=>'อายุ '+v+' ปี'}
 ];
 
-/* สไตล์การทำงาน: จัดตามชั่วโมงต่อสัปดาห์ (≈ ชม./วัน × 5) ไม่ได้จัดอันดับ และหยุดที่ช่วงเร่งสั้นๆ */
+/* สไตล์การทำงาน: จัดตามชั่วโมงรวมต่อสัปดาห์ ไม่ได้จัดอันดับ และหยุดที่ช่วงเร่งสั้นๆ */
 const STYLES=[
   {max:0,  emoji:'🌤️', title:'ยังไม่มีชั่วโมงทำงาน', line:'เวลาทั้งหมดยังเป็นของคุณเต็มๆ', who:''},
   {max:34, emoji:'🌿', title:'สไตล์นักคิดสบายๆ', line:'ทำน้อยแต่ตั้งใจ ก็ยิ่งใหญ่ได้ไม่แพ้ใคร', who:'แบบ Charles Darwin · ว่ากันว่าทำงานจริงจังวันละราว 4-5 ชั่วโมง'},
   {max:44, emoji:'🏭', title:'สไตล์สมดุลผู้เปลี่ยนโลก', line:'เวลาและความทุ่มเทของคุณมีค่าเท่าคนที่เปลี่ยนโลก', who:'แบบ Henry Ford · บริษัทของเขาเป็นผู้นำวันทำงาน 8 ชั่วโมง 5 วัน'},
   {max:54, emoji:'🚀', title:'สไตล์วิชันนารีมุ่งมั่น', line:'ความมุ่งมั่นของคุณยิ่งใหญ่ไม่แพ้คนที่สร้างสิ่งใหม่ให้โลก', who:'แบบ Steve Jobs / Bill Gates · ว่ากันว่าเป็นคนทำงานหนักมาก'},
   {max:64, emoji:'🛡️', title:'สไตล์หัวใจเหล็ก', line:'วินัยของคุณสูงส่งเทียบเท่าตำนาน อย่าลืมชาร์จพลังด้วยนะ', who:'แบบ Winston Churchill / Kobe Bryant · ว่ากันว่าวินัยสูงมาก'},
-  {max:80, emoji:'⚡', title:'สไตล์ช่วงเร่งสุดตัว', line:'พลังทุ่มสุดตัวของคุณน่าทึ่ง เหมาะกับช่วงสั้นๆ หาเวลาพักบ้างนะ!', who:'แบบ Thomas Edison / Tim Cook / Elon Musk · ว่ากันว่าทำงานหนักมาก'}
+  {max:200, emoji:'⚡', title:'สไตล์ช่วงเร่งสุดตัว', line:'พลังทุ่มสุดตัวของคุณน่าทึ่ง เหมาะกับช่วงสั้นๆ หาเวลาพักบ้างนะ!', who:'แบบ Thomas Edison / Tim Cook / Elon Musk · ว่ากันว่าทำงานหนักมาก'}
 ];
 
 function renderBadge(work,workWeeks){
@@ -187,6 +213,21 @@ function renderBadge(work,workWeeks){
 function dateAtMidnight(v){
   const [y,m,d]=v.split('-').map(Number);
   return new Date(y,m-1,d);
+}
+
+function birthLabel(v){
+  try{
+    return dateAtMidnight(v).toLocaleDateString('th-TH-u-ca-gregory',{day:'numeric',month:'short',year:'numeric'});
+  }catch(e){return v;}
+}
+
+/* วันเกิด: ถ้ามีแล้วย่อเหลือบรรทัดเดียว กด "แก้ไข" เพื่อเปิดช่องกรอก */
+function showBirth(editing){
+  const v=$('birth').value;
+  const has=!!v;
+  $('birthLine').hidden=!has||!!editing;
+  $('birthForm').hidden=has&&!editing;
+  if(has)$('birthText').textContent='เกิด '+birthLabel(v);
 }
 
 function buildGrid(){
@@ -236,13 +277,22 @@ function update(){
     store.set(f.key,String(v));
   });
 
-  const sleep=val('sleep'), routine=val('routine'), work=val('work'), commute=val('commute'), until=val('until');
+  const sleep=val('sleep'), routine=val('routine'), workDay=val('workDay'), workDays=val('workDays'), commute=val('commute'), until=val('until');
+  const work=workDay*workDays;
+  $('workTotal').textContent='รวมทำงาน '+fmt(work,1)+' ชั่วโมงต่อสัปดาห์';
+
   const base=(sleep+routine)*7;
-  const commuteH=work>0?commute*5:0;
+  const commuteH=work>0?commute*workDays:0;
   const used=base+work+commuteH;
   const fw=Math.max(0,H-used)/H, fr=Math.max(0,H-base)/H;
 
-  $('warn').hidden=used<=H;
+  const dayUsed=sleep+routine+workDay+(workDay>0?commute:0);
+  let warn='';
+  if(workDay>0&&dayUsed>24){warn='ในวันที่ทำงาน เวลารวมกันเกิน 24 ชั่วโมง ลองลดบางรายการ';}
+  else if(used>H){warn='รวมแล้วเกิน 168 ชั่วโมงต่อสัปดาห์ ลองลดบางรายการ';}
+  $('warn').textContent=warn;
+  $('warn').hidden=!warn;
+
   $('weekly').textContent='ใน 1 สัปดาห์ที่ยังทำงาน เหลือเวลาว่าง '+fmt(Math.max(0,H-used),1)+' จาก 168 ชั่วโมง · หลังเลิกทำงาน เหลือ '+fmt(Math.max(0,H-base),1)+' ชั่วโมง';
 
   const remaining=currentWeek===null?0:Math.max(0,total-currentWeek);
@@ -281,7 +331,7 @@ function update(){
 
 function setBirth(save){
   const v=$('birth').value;
-  if(!v){currentWeek=null;buildGrid();update();return;}
+  if(!v){currentWeek=null;buildGrid();update();showBirth(false);return;}
   const born=dateAtMidnight(v), now=new Date();
   now.setHours(0,0,0,0);
   if(born>now){alert('วันเกิดต้องไม่อยู่ในอนาคต');return;}
@@ -289,6 +339,7 @@ function setBirth(save){
   if(save)store.set('4000weeks_birth',v);
   buildGrid();
   update();
+  showBirth(false);
 }
 
 fields.forEach(f=>{
@@ -297,6 +348,7 @@ fields.forEach(f=>{
   el.addEventListener('input',update);
 });
 $('birth').addEventListener('change',()=>setBirth(true));
+$('birthEdit').addEventListener('click',()=>{showBirth(true);$('birth').focus();});
 
 const savedBirth=store.get('4000weeks_birth');
 if(savedBirth){$('birth').value=savedBirth;}
@@ -309,4 +361,4 @@ if('serviceWorker' in navigator){
 }
 </script>
 </body>
-                                                         </html>
+</html>
