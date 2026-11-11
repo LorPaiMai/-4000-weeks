@@ -3,59 +3,73 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10131b">
+<meta name="theme-color" content="#f7f9fc">
 <title>4,000 Weeks</title>
 <link rel="manifest" href="./manifest.webmanifest">
 
 <style>
 :root{
-  color-scheme:dark;
-  --bg:#10131b;--panel:#1a1f2b;--muted:#aab2c2;--text:#f4f6fb;
-  --past:#78849a;--current:#f4c95d;--future:#30394a;
-  --accent:#9db7ff;--sleep:#8b5cf6;--sleep-share:33.3%;
+  color-scheme:light;
+  --bg:#f7f9fc;--text:#1f2937;--muted:#667085;--line:#dde3ee;--accent:#5b8def;
+  --past:#e6eaf1;--current:#f0b429;
+  --c-sleep:#b7a8e6;--c-free:#4aa3e8;
 }
+[hidden]{display:none!important}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,sans-serif}
+html{background:var(--bg)}
+/* พื้นหลังไล่สีฟุ้งๆ: ใช้ radial-gradient ซ้อนกัน เบากว่า blur และไม่กินแรงเครื่อง */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(65% 42% at 6% 4%,#cde7fb 0%,rgba(205,231,251,0) 72%),
+    radial-gradient(55% 38% at 98% 10%,#f6efc4 0%,rgba(246,239,196,0) 72%),
+    radial-gradient(70% 46% at 12% 96%,#d1f1df 0%,rgba(209,241,223,0) 72%),
+    radial-gradient(60% 40% at 100% 100%,#e6ddfa 0%,rgba(230,221,250,0) 72%);
+}
+body{margin:0;color:var(--text);font:16px system-ui,-apple-system,sans-serif}
 main{max-width:760px;margin:auto;padding:14px}
-header{position:sticky;top:0;z-index:5;background:rgba(16,19,27,.96);backdrop-filter:blur(10px);padding:10px 0 12px;border-bottom:1px solid #303747}
+header{position:sticky;top:0;z-index:5;background:rgba(247,249,252,.92);padding:10px 0 12px;border-bottom:1px solid var(--line)}
 h1{font-size:22px;margin:0 0 3px}
 .sub{font-size:13px;color:var(--muted)}
-.panel{background:var(--panel);border:1px solid #303747;border-radius:14px;padding:13px;margin:12px 0}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tabs a{flex:1;text-align:center;padding:9px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.7);color:var(--text);text-decoration:none;font-size:14px}
+.tabs a.on{background:#1f2937;color:#fff;font-weight:700;border-color:#1f2937}
+.panel{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.95);box-shadow:0 6px 24px rgba(60,80,120,.08);border-radius:18px;padding:14px;margin:12px 0}
 label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-input,select,button{font:inherit;border-radius:10px;border:1px solid #46516a;padding:11px;background:#111722;color:var(--text)}
+input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line);padding:11px;background:#fff;color:var(--text)}
 input,select{width:100%}
-button{cursor:pointer;background:#29344a}
-button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
+button{cursor:pointer;background:rgba(255,255,255,.9)}
+button.primary{background:#1f2937;color:#fff;border-color:#1f2937;font-weight:700}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .actions button{flex:1;min-width:130px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.stat{background:#111722;border-radius:10px;padding:9px}
+.stat{background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:12px;padding:9px}
 .stat b{display:block;font-size:20px}
 .stat span{font-size:11px;color:var(--muted)}
-.progress{height:8px;background:#30394a;border-radius:20px;overflow:hidden;margin-top:10px}
+.progress{height:8px;background:var(--past);border-radius:20px;overflow:hidden;margin-top:10px}
 .progress>i{display:block;height:100%;background:var(--accent);width:0}
-.sleep-bar{display:flex;height:12px;border-radius:20px;overflow:hidden;margin-top:12px;background:#30394a}
-.sleep-bar .sleep-part{background:var(--sleep)}
-.sleep-bar .awake-part{background:var(--accent)}
+.sleep-bar{display:flex;height:12px;border-radius:20px;overflow:hidden;margin-top:12px;background:var(--past)}
+.sleep-bar .sleep-part{background:var(--c-sleep)}
+.sleep-bar .awake-part{background:var(--c-free)}
 #sleepSummary{margin:10px 0 0}
-#calendarPanel{scroll-margin-top:170px}
+#calendarPanel{scroll-margin-top:190px}
 .calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 #grid{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:3px;margin-top:12px}
-.week{aspect-ratio:1;border-radius:3px;min-width:0;border:0;padding:0;background:linear-gradient(to right,var(--sleep) 0 var(--sleep-share),var(--week-base) var(--sleep-share) 100%)}
-.week.past{--week-base:var(--past)}
-.week.current{--week-base:var(--current);outline:2px solid white;outline-offset:1px}
-.week.future{--week-base:var(--future)}
+.week{aspect-ratio:1;border-radius:3px;min-width:0;background:transparent}
+.week.past{background:var(--past)}
+.week.current{background:var(--current);outline:2px solid #1f2937;outline-offset:1px}
+.week.future{background:var(--c-free)}
+.week.sleep{background:rgba(183,168,230,.22)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
 .legend-item{display:inline-flex;align-items:center;gap:5px}
-.dot{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--future)}
-.dot.p{background:var(--past)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px}
+.dot.p{background:var(--past);box-shadow:inset 0 0 0 1px #cfd6e2}
 .dot.c{background:var(--current)}
-.dot.s{background:var(--sleep)}
-.dot.a{background:var(--accent)}
+.dot.a{background:var(--c-free)}
+.dot.s{background:rgba(183,168,230,.4);box-shadow:inset 0 0 0 1px rgba(183,168,230,.9)}
 .note{font-size:12px;color:var(--muted);line-height:1.5}
 @media(max-width:420px){
-  main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}
-  .stat b{font-size:17px}
+  main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}.stat b{font-size:17px}
 }
 </style>
 </head>
@@ -64,7 +78,8 @@ button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
 <header>
 <h1>4,000 Weeks</h1>
 <div class="sub">หนึ่งช่องแทนหนึ่งสัปดาห์ · เป็นการประมาณ ไม่ใช่การทำนายวันตาย</div>
-</header><nav style="display:flex;gap:8px;margin:10px 0"><a href="./" style="flex:1;text-align:center;padding:9px;border-radius:10px;background:#d9e3ff;color:#151a25;font-weight:700;text-decoration:none;font-size:14px">ปฏิทิน</a><a href="./plan.html" style="flex:1;text-align:center;padding:9px;border-radius:10px;border:1px solid #46516a;background:#111722;color:#f4f6fb;text-decoration:none;font-size:14px">วางแผนเวลา</a></nav>
+<nav class="tabs"><a href="./" class="on">ปฏิทิน</a><a href="./plan.html">วางแผนเวลา</a></nav>
+</header>
 
 <section class="panel">
 <label for="birth">วันเกิดของคุณ</label>
@@ -82,8 +97,8 @@ button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
 </section>
 
 <section class="panel" aria-labelledby="sleepTitle">
-<b id="sleepTitle">เวลานอนใน 4,000 สัปดาห์</b>
-<p class="sub">เลือกเวลานอนเฉลี่ยต่อวัน ทุกช่องในปฏิทินจะแสดงส่วนที่เป็นเวลานอน</p>
+<b id="sleepTitle">เวลาที่ใช้ไปกับการนอน</b>
+<p class="sub">เลือกเวลานอนเฉลี่ยต่อวัน ช่องที่เป็นเวลานอนจะจางลงในปฏิทิน เหลือช่องสว่างเป็นเวลาที่ตื่นอยู่</p>
 <label for="sleepHours">คุณนอนวันละกี่ชั่วโมง?</label>
 <select id="sleepHours">
   <option value="2">2 ชั่วโมง</option>
@@ -97,26 +112,26 @@ button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
   <option value="10">10 ชั่วโมง</option>
 </select>
 <div class="stats">
-  <div class="stat"><b id="sleepWeeks">—</b><span>สัปดาห์ที่ใช้นอน ตลอด 4,000 สัปดาห์*</span></div>
-  <div class="stat"><b id="awakeWeeks">—</b><span>สัปดาห์ที่ตื่น ตลอด 4,000 สัปดาห์*</span></div>
-  <div class="stat"><b id="sleepSoFar">—</b><span>สัปดาห์ที่ใช้นอนไปแล้ว*</span></div>
+  <div class="stat"><b id="sleepYears">—</b><span>ปีที่ใช้ไปกับการนอน ตลอดชีวิต*</span></div>
+  <div class="stat"><b id="sleepAhead">—</b><span>ปีที่จะนอนอีกจากนี้*</span></div>
+  <div class="stat"><b id="awakeLeft">—</b><span>สัปดาห์ตื่นที่เหลือ*</span></div>
 </div>
-<div class="sleep-bar" role="img" aria-label="สัดส่วนเวลานอนและเวลาตื่น">
+<div class="sleep-bar" role="img" aria-label="สัดส่วนเวลานอนและเวลาตื่นใน 1 วัน">
   <div class="sleep-part" id="sleepBar"></div>
   <div class="awake-part" id="awakeBar"></div>
 </div>
 <p class="note" id="sleepSummary"></p>
-<p class="note">ตัวเลขเป็นเวลานอนที่แปลงเป็นหน่วยสัปดาห์ โดยสมมติว่านอนเท่ากันทุกวัน ไม่ใช่การหักสัปดาห์จริงออกจากอายุ เปลี่ยนค่าได้ตลอดเวลา</p>
+<p class="note">การนอนเป็นสิ่งที่ร่างกายต้องใช้ ไม่ใช่เวลาที่เสียเปล่า ช่องที่จางลงคือเวลานอนที่แปลงเป็นหน่วยสัปดาห์แล้วกระจายเท่าๆ กัน ไม่ได้หมายความว่าต้องนอนทั้งสัปดาห์ติดกัน เป็นการประมาณโดยสมมติว่านอนเท่ากันทุกวัน</p>
 </section>
 
 <section class="panel" id="calendarPanel">
 <div class="calendar-head"><b>ปฏิทิน 4,000 สัปดาห์</b><span class="sub" id="range">กรอกวันเกิดเพื่อเริ่ม</span></div>
-<div id="grid" role="img" aria-label="ปฏิทิน 4,000 สัปดาห์ แต่ละช่องคือหนึ่งสัปดาห์ ส่วนสีม่วงคือเวลานอน"></div>
+<div id="grid" role="img" aria-label="ปฏิทิน 4,000 สัปดาห์ ช่องสว่างคือเวลาตื่นที่เหลือ ช่องที่จางคือเวลานอน"></div>
 <div class="legend">
   <span class="legend-item"><i class="dot p"></i>ผ่านมาแล้ว</span>
   <span class="legend-item"><i class="dot c"></i>สัปดาห์ปัจจุบัน</span>
-  <span class="legend-item"><i class="dot"></i>ยังไม่ถึง</span>
-  <span class="legend-item"><i class="dot s"></i>ส่วนที่เป็นเวลานอน</span>
+  <span class="legend-item"><i class="dot a"></i>ตื่น เหลือให้ใช้</span>
+  <span class="legend-item"><i class="dot s"></i>เวลานอน (จางลง)</span>
 </div>
 </section>
 
@@ -124,7 +139,7 @@ button.primary{background:#d9e3ff;color:#151a25;border:0;font-weight:700}
 </main>
 
 <script>
-const $=id=>document.getElementById(id), total=4000, weekMs=7*24*60*60*1000, weeksPerYear=365.25/7;
+const $=id=>document.getElementById(id), total=4000, weekMs=7*24*60*60*1000, wpy=365.25/7;
 let currentWeek=null;
 
 const store={
@@ -138,32 +153,53 @@ function dateAtMidnight(v){
   return new Date(y,m-1,d);
 }
 
-/* เปลี่ยนชั่วโมงนอน: อัปเดตตัวเลขกับตัวแปร CSS เท่านั้น ไม่สร้างตาราง 4,000 ช่องใหม่ */
+/* ระบายสีช่องใหม่ตามชั่วโมงนอน: ช่องในอนาคตแบ่งเป็น "นอน" (จางลง) กับ "ตื่น" (สว่าง) กระจายเท่าๆ กัน */
+function paintGrid(){
+  const hours=Number($('sleepHours').value);
+  const cells=$('grid').children;
+  if(currentWeek===null||cells.length===0){
+    $('sleepAhead').textContent='—';
+    $('awakeLeft').textContent='—';
+    return;
+  }
+  let sleepCount=0, awakeCount=0;
+  for(let i=0;i<cells.length;i++){
+    let cls='week ';
+    if(i<currentWeek){cls+='past';}
+    else if(i===currentWeek){cls+='current';}
+    else{
+      const j=i-currentWeek-1;
+      if(Math.floor((j+1)*hours/24)>Math.floor(j*hours/24)){cls+='sleep';sleepCount++;}
+      else{cls+='future';awakeCount++;}
+    }
+    cells[i].className=cls;
+  }
+  $('sleepAhead').textContent=fmt(sleepCount/wpy,1);
+  $('awakeLeft').textContent=fmt(awakeCount);
+}
+
 function updateSleep(){
   const hours=Number($('sleepHours').value);
   const share=hours/24*100;
-  const sleepAll=total*hours/24;
+  const sleepYears=total*hours/24/wpy;
 
-  $('sleepWeeks').textContent=fmt(sleepAll);
-  $('awakeWeeks').textContent=fmt(total-sleepAll);
-  $('sleepSoFar').textContent=currentWeek===null?'—':fmt(Math.min(currentWeek,total)*hours/24);
+  $('sleepYears').textContent=fmt(sleepYears,1);
   $('sleepBar').style.width=share+'%';
   $('awakeBar').style.width=(100-share)+'%';
-  $('sleepSummary').textContent='นอนวันละ '+hours+' ชั่วโมง ≈ '+fmt(sleepAll/weeksPerYear,1)+' ปี จาก '+fmt(total/weeksPerYear,1)+' ปี';
-  document.documentElement.style.setProperty('--sleep-share',share+'%');
+  $('sleepSummary').textContent='นอนวันละ '+hours+' ชั่วโมง = '+fmt(share,1)+'% ของทุกสัปดาห์ ≈ '+fmt(sleepYears,1)+' ปี จาก '+fmt(total/wpy,1)+' ปี';
 
   store.set('4000weeks_sleep_hours',String(hours));
+  paintGrid();
 }
 
-function renderGrid(){
+function buildGrid(){
   const grid=$('grid');
   grid.innerHTML='';
   if(currentWeek===null)return;
   const frag=document.createDocumentFragment();
-
   for(let i=0;i<total;i++){
     const cell=document.createElement('div');
-    cell.className='week '+(i<currentWeek?'past':i===currentWeek?'current':'future');
+    cell.className='week';
     cell.title='สัปดาห์ที่ '+(i+1);
     frag.appendChild(cell);
   }
@@ -193,8 +229,8 @@ function render(){
   $('range').textContent='สัปดาห์ที่ '+fmt(Math.min(currentWeek+1,total))+' จาก 4,000';
 
   store.set('4000weeks_birth',v);
-  updateSleep();
-  renderGrid();
+  buildGrid();
+  paintGrid();
 }
 
 $('calc').addEventListener('click',render);
@@ -220,6 +256,57 @@ if(savedBirth){
   render();
 }
 
+/* ปัดซ้าย-ขวาเพื่อสลับหน้า (ยังกดแท็บได้เหมือนเดิม)
+   หน้านี้: ปัดไปทางซ้าย = ไปหน้าวางแผนเวลา */
+(function(){
+  const URL_='./plan.html', SIGN=-1;
+  const main=document.querySelector('main');
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sx=0,sy=0,st=0,ok=false,busy=false;
+
+  try{
+    const s=sessionStorage.getItem('4k_slide');
+    if(s){
+      sessionStorage.removeItem('4k_slide');
+      if(!reduce&&main.animate){
+        main.animate([{opacity:0,transform:'translateX('+(Number(s)*-28)+'px)'},{opacity:1,transform:'none'}],{duration:200,easing:'ease-out'});
+      }
+    }
+  }catch(e){}
+
+  function go(){
+    if(busy)return;
+    busy=true;
+    try{sessionStorage.setItem('4k_slide',String(SIGN));}catch(e){}
+    if(reduce||!main.animate){location.href=URL_;return;}
+    const a=main.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX('+(SIGN*28)+'px)'}],{duration:160,easing:'ease-in',fill:'forwards'});
+    a.onfinish=()=>{location.href=URL_;};
+    setTimeout(()=>{location.href=URL_;},400);
+  }
+
+  window.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1){ok=false;return;}
+    const el=e.target;
+    ok=!(el&&el.closest&&el.closest('input,select,textarea,button,a,label'));
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
+  },{passive:true});
+
+  window.addEventListener('touchend',e=>{
+    if(!ok)return;
+    ok=false;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    if(Date.now()-st>700)return;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2.2)return;
+    if((SIGN<0&&dx<0)||(SIGN>0&&dx>0))go();
+  },{passive:true});
+
+  window.addEventListener('pageshow',e=>{
+    busy=false;
+    if(e.persisted&&main.getAnimations)main.getAnimations().forEach(a=>a.cancel());
+  });
+})();
+
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js');
@@ -227,4 +314,4 @@ if('serviceWorker' in navigator){
 }
 </script>
 </body>
-</html>
+  </html>
