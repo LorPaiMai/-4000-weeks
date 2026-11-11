@@ -28,7 +28,7 @@ body::before{
 }
 body{margin:0;color:var(--text);font:16px system-ui,-apple-system,sans-serif}
 main{max-width:760px;margin:auto;padding:14px}
-header{position:sticky;top:0;z-index:5;background:rgba(247,249,252,.92);padding:10px 0 12px;border-bottom:1px solid var(--line)}
+header{padding:10px 0 12px;border-bottom:1px solid var(--line)}
 h1{font-size:22px;margin:0 0 3px}
 .sub{font-size:13px;color:var(--muted)}
 .tabs{display:flex;gap:8px;margin-top:10px}
@@ -52,21 +52,21 @@ button.primary{background:#1f2937;color:#fff;border-color:#1f2937;font-weight:70
 .sleep-bar .sleep-part{background:var(--c-sleep)}
 .sleep-bar .awake-part{background:var(--c-free)}
 #sleepSummary{margin:10px 0 0}
-#calendarPanel{scroll-margin-top:190px}
+#calendarPanel{scroll-margin-top:12px}
 .calendar-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 #grid{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:3px;margin-top:12px}
 .week{aspect-ratio:1;border-radius:3px;min-width:0;background:transparent}
 .week.past{background:var(--past)}
 .week.current{background:var(--current);outline:2px solid #1f2937;outline-offset:1px}
 .week.future{background:var(--c-free)}
-.week.sleep{background:rgba(183,168,230,.22)}
+.week.sleep{background:rgba(183,168,230,.16);box-shadow:inset 0 0 0 1px rgba(140,120,215,.8)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:10px}
 .legend-item{display:inline-flex;align-items:center;gap:5px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:3px}
 .dot.p{background:var(--past);box-shadow:inset 0 0 0 1px #cfd6e2}
 .dot.c{background:var(--current)}
 .dot.a{background:var(--c-free)}
-.dot.s{background:rgba(183,168,230,.4);box-shadow:inset 0 0 0 1px rgba(183,168,230,.9)}
+.dot.s{background:rgba(183,168,230,.16);box-shadow:inset 0 0 0 1px rgba(140,120,215,.8)}
 .note{font-size:12px;color:var(--muted);line-height:1.5}
 @media(max-width:420px){
   main{padding:10px}#grid{gap:2px}.stats{gap:5px}.stat{padding:7px}.stat b{font-size:17px}
@@ -131,7 +131,7 @@ button.primary{background:#1f2937;color:#fff;border-color:#1f2937;font-weight:70
   <span class="legend-item"><i class="dot p"></i>ผ่านมาแล้ว</span>
   <span class="legend-item"><i class="dot c"></i>สัปดาห์ปัจจุบัน</span>
   <span class="legend-item"><i class="dot a"></i>ตื่น เหลือให้ใช้</span>
-  <span class="legend-item"><i class="dot s"></i>เวลานอน (จางลง)</span>
+  <span class="legend-item"><i class="dot s"></i>เวลานอน (วงแหวนจาง)</span>
 </div>
 </section>
 
@@ -153,7 +153,18 @@ function dateAtMidnight(v){
   return new Date(y,m-1,d);
 }
 
-/* ระบายสีช่องใหม่ตามชั่วโมงนอน: ช่องในอนาคตแบ่งเป็น "นอน" (จางลง) กับ "ตื่น" (สว่าง) กระจายเท่าๆ กัน */
+/* เลือกช่อง "นอน" ให้กระจายเท่าๆ กันแบบไม่เป็นแถบ ใช้ลำดับอัตราส่วนทองคำ (ได้จำนวนช่องตรงเป๊ะ) */
+const PHI=0.6180339887498949;
+function sleepFlags(count,K){
+  const keys=new Float64Array(count), idx=new Array(count);
+  for(let j=0;j<count;j++){keys[j]=(j*PHI)%1;idx[j]=j;}
+  idx.sort((a,b)=>keys[a]-keys[b]);
+  const flags=new Uint8Array(count);
+  for(let n=0;n<K;n++)flags[idx[n]]=1;
+  return flags;
+}
+
+/* ระบายสีช่องใหม่ตามชั่วโมงนอน: ช่องในอนาคตแบ่งเป็น "นอน" (วงแหวนจาง) กับ "ตื่น" (สีฟ้า) */
 function paintGrid(){
   const hours=Number($('sleepHours').value);
   const cells=$('grid').children;
@@ -162,20 +173,18 @@ function paintGrid(){
     $('awakeLeft').textContent='—';
     return;
   }
-  let sleepCount=0, awakeCount=0;
+  const count=Math.max(0,cells.length-currentWeek-1);
+  const K=Math.round(count*hours/24);
+  const flags=sleepFlags(count,K);
   for(let i=0;i<cells.length;i++){
     let cls='week ';
     if(i<currentWeek){cls+='past';}
     else if(i===currentWeek){cls+='current';}
-    else{
-      const j=i-currentWeek-1;
-      if(Math.floor((j+1)*hours/24)>Math.floor(j*hours/24)){cls+='sleep';sleepCount++;}
-      else{cls+='future';awakeCount++;}
-    }
+    else{cls+=flags[i-currentWeek-1]?'sleep':'future';}
     cells[i].className=cls;
   }
-  $('sleepAhead').textContent=fmt(sleepCount/wpy,1);
-  $('awakeLeft').textContent=fmt(awakeCount);
+  $('sleepAhead').textContent=fmt(K/wpy,1);
+  $('awakeLeft').textContent=fmt(count-K);
 }
 
 function updateSleep(){
@@ -314,4 +323,4 @@ if('serviceWorker' in navigator){
 }
 </script>
 </body>
-  </html>
+</html>
