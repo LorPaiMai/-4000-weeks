@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="th">
 <head>
@@ -17,7 +18,6 @@
 [hidden]{display:none!important}
 *{box-sizing:border-box}
 html{background:var(--bg)}
-/* พื้นหลังไล่สีฟุ้งๆ: ใช้ radial-gradient ซ้อนกัน เบากว่า blur และไม่กินแรงเครื่อง */
 body::before{
   content:"";position:fixed;inset:0;z-index:-1;
   background:
@@ -86,7 +86,7 @@ button.link{font:inherit;font-size:13px;background:none;border:0;color:var(--acc
 <header>
 <h1>วางแผนเวลา</h1>
 <div class="sub">เวลาที่เหลือจะถูกใช้กับอะไรบ้าง · เป็นการประมาณ ไม่ใช่การทำนาย</div>
-<nav class="tabs"><a href="./">ปฏิทิน</a><a href="./plan.html" class="on">วางแผนเวลา</a></nav>
+<nav class="tabs"><a href="./">ปฏิทิน</a><a href="./day.html">ตารางวัน</a><a href="./plan.html" class="on">วางแผนเวลา</a></nav>
 </header>
 
 <section class="panel">
@@ -190,6 +190,228 @@ const STYLES=[
   {max:34, emoji:'🌿', title:'สไตล์นักคิดสบายๆ', line:'ทำน้อยแต่ตั้งใจ ก็ยิ่งใหญ่ได้ไม่แพ้ใคร', who:'แบบ Charles Darwin · ว่ากันว่าทำงานจริงจังวันละราว 4-5 ชั่วโมง'},
   {max:44, emoji:'🏭', title:'สไตล์สมดุลผู้เปลี่ยนโลก', line:'เวลาและความทุ่มเทของคุณมีค่าเท่าคนที่เปลี่ยนโลก', who:'แบบ Henry Ford · บริษัทของเขาเป็นผู้นำวันทำงาน 8 ชั่วโมง 5 วัน'},
   {max:54, emoji:'🚀', title:'สไตล์วิชันนารีมุ่งมั่น', line:'ความมุ่งมั่นของคุณยิ่งใหญ่ไม่แพ้คนที่สร้างสิ่งใหม่ให้โลก', who:'แบบ Steve Jobs / Bill Gates · ว่ากันว่าเป็นคนทำงานหนักมาก'},
+  {max:64, emoji:'🛡️', title:'สไตล์หัวใจเหล็ก', line:'วินัยของคุณสูงส่งเทียบเท่าตำนาน อย่าลืมชาร์จพลังด้วยนะ', who:'แบบ Winston Churchill / Kobe Bryant · ว่ากันว่าวินัยสูงมาก'},
+  {max:200, emoji:'⚡', title:'สไตล์ช่วงเร่งสุดตัว', line:'พลังทุ่มสุดตัวของคุณน่าทึ่ง เหมาะกับช่วงสั้นๆ หาเวลาพักบ้างนะ!', who:'แบบ Thomas Edison / Tim Cook / Elon Musk · ว่ากันว่าทำงานหนักมาก'}
+];
+
+function renderBadge(work,workWeeks){
+  const st=STYLES.find(s=>work<=s.max)||STYLES[STYLES.length-1];
+  $('bEmoji').textContent=st.emoji;
+  $('bTitle').textContent=st.title;
+  $('bLine').textContent=st.line;
+  $('bWho').textContent=st.who;
+  $('bWho').hidden=!st.who;
+  let trade='';
+  if(work>0&&workWeeks>0){
+    const x=workWeeks*5/H;
+    trade='ทุก +5 ชม./สัปดาห์ จะใช้เวลาว่างไปราว '+fmt(x)+' สัปดาห์ (≈ '+fmt(x/wpy,1)+' ปี)';
+  }
+  $('bTrade').textContent=trade;
+  $('bTrade').hidden=!trade;
+}
+
+function dateAtMidnight(v){
+  const [y,m,d]=v.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+
+function birthLabel(v){
+  try{
+    return dateAtMidnight(v).toLocaleDateString('th-TH-u-ca-gregory',{day:'numeric',month:'short',year:'numeric'});
+  }catch(e){return v;}
+}
+
+function showBirth(editing){
+  const v=$('birth').value;
+  const has=!!v;
+  $('birthLine').hidden=!has||!!editing;
+  $('birthForm').hidden=has&&!editing;
+  if(has)$('birthText').textContent='เกิด '+birthLabel(v);
+}
+
+function buildGrid(){
+  const grid=$('grid');
+  grid.innerHTML='';
+  if(currentWeek===null)return;
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<total;i++){
+    const cell=document.createElement('div');
+    cell.className='week';
+    cell.title='สัปดาห์ที่ '+(i+1);
+    frag.appendChild(cell);
+  }
+  grid.appendChild(frag);
+}
+
+const KINDS=['s','r','w','t'];
+function paintGrid(parts){
+  const cells=$('grid').children;
+  if(currentWeek===null||cells.length===0)return;
+  const bounds=[];
+  let acc=0;
+  parts.forEach(p=>{acc+=p;bounds.push(Math.round(acc));});
+  for(let i=0;i<cells.length;i++){
+    let cls='week ';
+    if(i<currentWeek){cls+='past';}
+    else if(i===currentWeek){cls+='current';}
+    else{
+      const j=i-currentWeek-1;
+      let k=0;
+      while(k<bounds.length&&j>=bounds[k])k++;
+      cls+=(k<bounds.length?KINDS[k]:'f');
+    }
+    cells[i].className=cls;
+  }
+}
+
+function row(name,weeks,cls){
+  return '<div class="brow"><span><i class="dot '+cls+'"></i>'+name+'</span><span>'+fmt(weeks)+' สัปดาห์ · '+fmt(weeks/wpy,1)+' ปี</span></div>';
+}
+
+function update(){
+  fields.forEach(f=>{
+    const v=val(f.id);
+    $(f.id+'V').textContent=f.show(v);
+    store.set(f.key,String(v));
+  });
+
+  const sleep=val('sleep'), routine=val('routine'), workDay=val('workDay'), workDays=val('workDays'), commute=val('commute'), until=val('until');
+  const work=workDay*workDays;
+  $('workTotal').textContent='รวมทำงาน '+fmt(work,1)+' ชั่วโมงต่อสัปดาห์';
+
+  const base=(sleep+routine)*7;
+  const commuteH=work>0?commute*workDays:0;
+  const used=base+work+commuteH;
+  const fw=Math.max(0,H-used)/H, fr=Math.max(0,H-base)/H;
+
+  const dayUsed=sleep+routine+workDay+(workDay>0?commute:0);
+  let warn='';
+  if(workDay>0&&dayUsed>24){warn='ในวันที่ทำงาน เวลารวมกันเกิน 24 ชั่วโมง ลองลดบางรายการ';}
+  else if(used>H){warn='รวมแล้วเกิน 168 ชั่วโมงต่อสัปดาห์ ลองลดบางรายการ';}
+  $('warn').textContent=warn;
+  $('warn').hidden=!warn;
+
+  $('weekly').textContent='ใน 1 สัปดาห์ที่ยังทำงาน เหลือเวลาว่าง '+fmt(Math.max(0,H-used),1)+' จาก 168 ชั่วโมง · หลังเลิกทำงาน เหลือ '+fmt(Math.max(0,H-base),1)+' ชั่วโมง';
+
+  const remaining=currentWeek===null?0:Math.max(0,total-currentWeek);
+  const workWeeks=currentWeek===null?0:Math.min(remaining,Math.max(0,Math.round(until*wpy)-currentWeek));
+  renderBadge(work,workWeeks);
+
+  if(currentWeek===null){
+    $('freeWeeks').textContent='—';
+    $('freeYears').textContent='—';
+    $('freePct').textContent='—';
+    $('range').textContent='กรอกวันเกิดเพื่อเริ่ม';
+    $('breakdown').innerHTML='<p class="note">กรอกวันเกิดเพื่อดูผลรวมของเวลาที่เหลือ</p>';
+    return;
+  }
+
+  const restWeeks=remaining-workWeeks;
+  const sleepW=remaining*sleep*7/H;
+  const routineW=remaining*routine*7/H;
+  const workW=workWeeks*work/H;
+  const commuteW=workWeeks*commuteH/H;
+  const freeW=workWeeks*fw+restWeeks*fr;
+
+  $('freeWeeks').textContent=fmt(freeW);
+  $('freeYears').textContent=fmt(freeW/wpy,1);
+  $('freePct').textContent=remaining>0?fmt(freeW/remaining*100,1)+'%':'—';
+  $('range').textContent='เหลือ '+fmt(remaining)+' สัปดาห์';
+  $('breakdown').innerHTML=
+    row('นอน',sleepW,'s')+
+    row('กินข้าวและกิจวัตร',routineW,'r')+
+    row('ทำงาน',workW,'w')+
+    row('เดินทาง',commuteW,'t')+
+    row('เวลาว่างจริง',freeW,'f');
+
+  paintGrid([sleepW,routineW,workW,commuteW]);
+}
+
+function setBirth(save){
+  const v=$('birth').value;
+  if(!v){currentWeek=null;buildGrid();update();showBirth(false);return;}
+  const born=dateAtMidnight(v), now=new Date();
+  now.setHours(0,0,0,0);
+  if(born>now){alert('วันเกิดต้องไม่อยู่ในอนาคต');return;}
+  currentWeek=Math.floor((now-born)/weekMs);
+  if(save)store.set('4000weeks_birth',v);
+  buildGrid();
+  update();
+  showBirth(false);
+}
+
+fields.forEach(f=>{
+  const el=$(f.id), raw=store.get(f.key), n=Number(raw);
+  el.value=(raw!==null&&raw!==''&&isFinite(n)&&n>=Number(el.min)&&n<=Number(el.max))?n:f.def;
+  el.addEventListener('input',update);
+});
+$('birth').addEventListener('change',()=>setBirth(true));
+$('birthEdit').addEventListener('click',()=>{showBirth(true);$('birth').focus();});
+
+const savedBirth=store.get('4000weeks_birth');
+if(savedBirth){$('birth').value=savedBirth;}
+setBirth(false);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+
+/* ปัดซ้าย-ขวาเพื่อสลับหน้า (ยังกดแท็บได้เหมือนเดิม)
+   หน้านี้: ปัดไปทางขวา = กลับหน้าปฏิทิน */
+(function(){
+  const URL_='./day.html', SIGN=1;
+  const main=document.querySelector('main');
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sx=0,sy=0,st=0,ok=false,busy=false;
+
+  try{
+    const s=sessionStorage.getItem('4k_slide');
+    if(s){
+      sessionStorage.removeItem('4k_slide');
+      if(!reduce&&main.animate){
+        main.animate([{opacity:0,transform:'translateX('+(Number(s)*-28)+'px)'},{opacity:1,transform:'none'}],{duration:200,easing:'ease-out'});
+      }
+    }
+  }catch(e){}
+
+  function go(){
+    if(busy)return;
+    busy=true;
+    try{sessionStorage.setItem('4k_slide',String(SIGN));}catch(e){}
+    if(reduce||!main.animate){location.href=URL_;return;}
+    const a=main.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX('+(SIGN*28)+'px)'}],{duration:160,easing:'ease-in',fill:'forwards'});
+    a.onfinish=()=>{location.href=URL_;};
+    setTimeout(()=>{location.href=URL_;},400);
+  }
+
+  window.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1){ok=false;return;}
+    const el=e.target;
+    ok=!(el&&el.closest&&el.closest('input,select,textarea,button,a,label'));
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
+  },{passive:true});
+
+  window.addEventListener('touchend',e=>{
+    if(!ok)return;
+    ok=false;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    if(Date.now()-st>700)return;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2.2)return;
+    if((SIGN<0&&dx<0)||(SIGN>0&&dx>0))go();
+  },{passive:true});
+
+  window.addEventListener('pageshow',e=>{
+    busy=false;
+    if(e.persisted&&main.getAnimations)main.getAnimations().forEach(a=>a.cancel());
+  });
+})();
+</script>
+</body>
+</html>
+่งใหม่ให้โลก', who:'แบบ Steve Jobs / Bill Gates · ว่ากันว่าเป็นคนทำงานหนักมาก'},
   {max:64, emoji:'🛡️', title:'สไตล์หัวใจเหล็ก', line:'วินัยของคุณสูงส่งเทียบเท่าตำนาน อย่าลืมชาร์จพลังด้วยนะ', who:'แบบ Winston Churchill / Kobe Bryant · ว่ากันว่าวินัยสูงมาก'},
   {max:200, emoji:'⚡', title:'สไตล์ช่วงเร่งสุดตัว', line:'พลังทุ่มสุดตัวของคุณน่าทึ่ง เหมาะกับช่วงสั้นๆ หาเวลาพักบ้างนะ!', who:'แบบ Thomas Edison / Tim Cook / Elon Musk · ว่ากันว่าทำงานหนักมาก'}
 ];
