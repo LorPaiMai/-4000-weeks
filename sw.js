@@ -1,14 +1,14 @@
-const CACHE_NAME = "4000-weeks-v5";
+const CACHE_NAME = "4000-weeks-v6";
 const PRECACHE = [
   "./",
   "./index.html",
   "./plan.html",
+  "./day.html",
   "./manifest.webmanifest",
   "./icon.svg",
   "./icon-192.png",
   "./icon-512.png"
 ];
-
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
