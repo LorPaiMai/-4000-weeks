@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f9fc">
+<title>ตารางวัน · 4,000 Weeks</title>
+<link rel="manifest" href="./manifest.webmanifest">
+
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f7f9fc;--text:#1f2937;--muted:#667085;--line:#dde3ee;--accent:#5b8def;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(65% 42% at 6% 4%,#cde7fb 0%,rgba(205,231,251,0) 72%),
+    radial-gradient(55% 38% at 98% 10%,#f6efc4 0%,rgba(246,239,196,0) 72%),
+    radial-gradient(70% 46% at 12% 96%,#d1f1df 0%,rgba(209,241,223,0) 72%),
+    radial-gradient(60% 40% at 100% 100%,#e6ddfa 0%,rgba(230,221,250,0) 72%);
+}
+body{margin:0;color:var(--text);font:16px system-ui,-apple-system,sans-serif}
+main{max-width:760px;margin:auto;padding:14px}
+header{padding:10px 0 12px;border-bottom:1px solid var(--line)}
+h1{font-size:22px;margin:0 0 3px}
+.sub{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tabs a{flex:1;text-align:center;padding:9px 4px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.7);color:var(--text);text-decoration:none;font-size:14px}
+.tabs a.on{background:#1f2937;color:#fff;font-weight:700;border-color:#1f2937}
+.panel{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.95);box-shadow:0 6px 24px rgba(60,80,120,.08);border-radius:18px;padding:14px;margin:12px 0}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+input,select,textarea,button{font:inherit;border-radius:12px;border:1px solid var(--line);padding:10px;background:#fff;color:var(--text)}
+input,select,textarea{width:100%}
+textarea{min-height:90px;font-size:13px}
+button{cursor:pointer;background:rgba(255,255,255,.9)}
+button.on{background:#1f2937;color:#fff;border-color:#1f2937}
+button.primary{background:#1f2937;color:#fff;border-color:#1f2937;font-weight:700}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:9px 6px;font-size:14px}
+.datebar{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.datebar button{padding:8px 12px}
+.datebar .lbl{flex:1;text-align:center;font-size:14px;line-height:1.3}
+.clockwrap{display:flex;justify-content:center;margin:6px 0}
+#clock{width:100%;max-width:340px;height:auto;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+#clock.brush{touch-action:none}
+.info{min-height:22px;text-align:center;font-size:14px;margin:2px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chips button{padding:7px 10px;font-size:13px;display:inline-flex;align-items:center;gap:5px;border-radius:999px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row span:first-child{display:inline-flex;align-items:center;gap:6px}
+.row span:last-child{color:var(--muted);text-align:right}
+.ev{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ev:last-child{border-bottom:0}
+.ev small{color:var(--muted);display:block;font-size:12px}
+.ev button{padding:4px 9px;font-size:13px}
+.form{display:grid;gap:10px;margin-top:10px}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+summary{cursor:pointer;font-weight:700;padding:6px 0}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+.warn{color:#b45309}
+.days{display:flex;gap:6px;flex-wrap:wrap}
+.days button{padding:8px 10px;min-width:42px}
+@media(max-width:420px){main{padding:10px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>ตารางวัน</h1>
+<div class="sub">วาดรูปแบบวันของคุณบนนาฬิกา 24 ชั่วโมง · ใช้ซ้ำได้ทุกวัน</div>
+<nav class="tabs"><a href="./">ปฏิทิน</a><a href="./day.html" class="on">ตารางวัน</a><a href="./plan.html">วางแผนเวลา</a></nav>
+</header>
+
+<section class="panel">
+<div class="seg" id="modeBar">
+  <button type="button" data-mode="view" class="on">ดูวัน</button>
+  <button type="button" data-mode="edit">แก้รูปแบบประจำวัน</button>
+</div>
+</section>
+
+<section class="panel">
+<div class="datebar" id="dateBar">
+  <button type="button" id="prevDay" aria-label="วันก่อนหน้า">‹</button>
+  <div class="lbl" id="dateLabel"></div>
+  <button type="button" id="nextDay" aria-label="วันถัดไป">›</button>
+  <button type="button" id="todayBtn">วันนี้</button>
+</div>
+<div class="seg" id="tplBar" hidden></div>
+
+<div class="clockwrap"><svg id="clock" viewBox="0 0 340 340" role="img" aria-label="นาฬิกา 24 ชั่วโมงแสดงตารางกิจกรรม"></svg></div>
+<div class="info" id="clockInfo"></div>
+
+<div id="brushBar" hidden>
+  <div class="note" id="brushHint">เลือกกิจกรรม แล้วลากนิ้วบนวงแหวนของนาฬิกาเพื่อระบายช่วงเวลา (ละเอียด 15 นาที)</div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<div id="stats"></div>
+</section>
+
+<section class="panel" id="eventsPanel">
+<b>ช่วงเวลาพิเศษของวันนี้</b>
+<div id="eventList"></div>
+<details>
+<summary>+ เพิ่มช่วงเวลาพิเศษ</summary>
+<div class="form">
+  <div><label for="evTitle">ชื่อ (เช่น ทำงานดึก, ไปซื้อของ)</label><input id="evTitle" type="text" maxlength="40"></div>
+  <div><label for="evCat">กิจกรรม</label><select id="evCat"></select></div>
+  <div class="two">
+    <div><label for="evStart">เริ่ม</label><input id="evStart" type="time" value="20:00"></div>
+    <div><label for="evEnd">สิ้นสุด</label><input id="evEnd" type="time" value="22:00"></div>
+  </div>
+  <div class="two">
+    <div><label for="evDate">วันที่</label><input id="evDate" type="date"></div>
+    <div><label for="evRepeat">ซ้ำ</label>
+      <select id="evRepeat">
+        <option value="none">ไม่ซ้ำ</option>
+        <option value="weekly">ทุกสัปดาห์ (วันเดิม)</option>
+        <option value="monthly">ทุกเดือน (วันที่เดิม)</option>
+      </select></div>
+  </div>
+  <p class="note">ถ้าเวลาสิ้นสุดน้อยกว่าเวลาเริ่ม จะนับว่าข้ามเที่ยงคืนไปอีกวัน ส่วนรายเดือนที่วันที่ไม่มีในเดือนนั้น (เช่น 31) จะใช้วันสุดท้ายของเดือนแทน</p>
+  <p class="note warn" id="evWarn" hidden></p>
+  <button type="button" class="primary" id="evAdd">เพิ่ม</button>
+</div>
+</details>
+<b style="display:block;margin-top:14px">กำลังจะมาถึง (30 วัน)</b>
+<div id="upcoming"></div>
+</section>
+
+<section class="panel" id="sincePanel">
+<b>สรุปตั้งแต่เริ่มใช้</b>
+<div class="note" id="sinceNote"></div>
+<div id="since"></div>
+</section>
+
+<section class="panel">
+<details>
+<summary>ตั้งค่าและสำรองข้อมูล</summary>
+<div class="form">
+  <div><label>วันไหนใช้รูปแบบ "วันทำงาน"</label><div class="days" id="workdayChips"></div></div>
+  <div><label for="startDate">วันที่เริ่มใช้งาน (ใช้คำนวณสรุปย้อนหลัง)</label><input id="startDate" type="date"></div>
+  <p class="note" id="syncNote">เมื่อแก้รูปแบบประจำวัน ค่าสรุป (นอน กิจวัตร ทำงาน เดินทาง) จะถูกส่งไปที่หน้าวางแผนเวลาและปฏิทินอัตโนมัติ</p>
+  <div><b>สำรองข้อมูล</b>
+    <p class="note">ข้อมูลอยู่ในเบราว์เซอร์เครื่องนี้เท่านั้น ถ้าล้างข้อมูลเว็บหรือลบแอป ข้อมูลจะหาย ควรคัดลอกเก็บไว้เป็นระยะ</p>
+    <div class="seg"><button type="button" id="btnExport">คัดลอกข้อมูลสำรอง</button><button type="button" id="btnImport">นำเข้าจากข้อความ</button></div>
+  </div>
+  <textarea id="backupText" placeholder="วางข้อความสำรองที่นี่ แล้วกด นำเข้าจากข้อความ" spellcheck="false"></textarea>
+  <p class="note" id="backupMsg"></p>
+</div>
+</details>
+</section>
+
+<p class="note">ตารางนี้เป็นแผนที่คุณวาดเอง ไม่ใช่การบันทึกสิ่งที่ทำจริง สรุปย้อนหลังคำนวณจากรูปแบบปัจจุบันที่ซ้ำมาตั้งแต่วันเริ่มใช้ ข้อมูลเก็บในเบราว์เซอร์บนอุปกรณ์นี้</p>
+</main>
+
+<script>
+/*PURE-START*/
+const SLOTS=96, SLOT_MIN=15;
+const CATS=[
+  {id:'s',name:'นอน',emoji:'😴',color:'#b7a8e6'},
+  {id:'r',name:'กินข้าว/กิจวัตร',emoji:'🍚',color:'#b8cfa0'},
+  {id:'w',name:'ทำงาน',emoji:'💼',color:'#f2b988'},
+  {id:'t',name:'เดินทาง',emoji:'🚌',color:'#efa7c0'},
+  {id:'o',name:'ภาระอื่นๆ',emoji:'📌',color:'#cdbba0'}
+];
+const CAT_BY_ID={};CATS.forEach(c=>{CAT_BY_ID[c.id]=c;});
+const FREE_COLOR='#4aa3e8';
+const DAYNAMES=['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+function pad(n){return String(n).padStart(2,'0');}
+function slotTime(s){const m=(((s%SLOTS)+SLOTS)%SLOTS)*SLOT_MIN;return pad(Math.floor(m/60))+':'+pad(m%60);}
+function timeToMin(t){const p=String(t).split(':');return Number(p[0])*60+Number(p[1]);}
+function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function parseISO(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
+function angleToSlot(deg){const a=((deg%360)+360)%360;return Math.floor(a/360*SLOTS)%SLOTS;}
+
+function paintBetween(slots,from,to,val){
+  const d=(((to-from)%SLOTS)+SLOTS)%SLOTS;
+  const step=d<=SLOTS/2?1:-1;
+  const n=step===1?d:SLOTS-d;
+  let s=from;
+  slots[s]=val;
+  for(let i=0;i<n;i++){s=(((s+step)%SLOTS)+SLOTS)%SLOTS;slots[s]=val;}
+}
+
+/* รวมช่องที่ติดกันและเป็นกิจกรรมเดียวกันเป็นช่วง (รองรับข้ามเที่ยงคืน) */
+function runsOf(slots){
+  let start=-1;
+  for(let i=0;i<SLOTS;i++){if(slots[i]!==slots[(i-1+SLOTS)%SLOTS]){start=i;break;}}
+  if(start===-1){return slots[0]===null?[]:[{cat:slots[0],start:0,len:SLOTS}];}
+  const runs=[];
+  let i=0;
+  while(i<SLOTS){
+    const s=(start+i)%SLOTS, c=slots[s];
+    let len=1;
+    while(i+len<SLOTS&&slots[(start+i+len)%SLOTS]===c)len++;
+    if(c!==null)runs.push({cat:c,start:s,len:len});
+    i+=len;
+  }
+  return runs;
+}
+
+function hoursByCat(slots){
+  const h={s:0,r:0,w:0,t:0,o:0,free:0};
+  for(let i=0;i<SLOTS;i++){const c=slots[i];if(c===null)h.free+=0.25;else if(h[c]!==undefined)h[c]+=0.25;}
+  return h;
+}
+
+function eventOccurs(ev,date){
+  const a=parseISO(ev.date);
+  if(date<a)return false;
+  if(ev.repeat==='none')return iso(date)===ev.date;
+  if(ev.repeat==='weekly')return date.getDay()===a.getDay();
+  if(ev.repeat==='monthly'){
+    const dim=daysInMonth(date.getFullYear(),date.getMonth());
+    return date.getDate()===Math.min(a.getDate(),dim);
+  }
+  return false;
+}
+
+function evRange(ev){
+  const sMin=timeToMin(ev.start), eMin=timeToMin(ev.end);
+  return {sS:Math.floor(sMin/SLOT_MIN),eS:Math.ceil(eMin/SLOT_MIN),wraps:eMin<=sMin};
+}
+
+/* ตารางของวันหนึ่ง = รูปแบบประจำวัน + ช่วงเวลาพิเศษที่ทับลงไป */
+function dayInfo(state,date){
+  const type=state.workdays.indexOf(date.getDay())>=0?'work':'off';
+  const slots=state.tpl[type].slice();
+  const mask=new Array(SLOTS).fill(null);
+  const items=[];
+  const prev=addDays(date,-1);
+  state.events.forEach(ev=>{
+    const r=evRange(ev);
+    if(eventOccurs(ev,date)){
+      const to=r.wraps?SLOTS:r.eS;
+      for(let i=r.sS;i<to;i++){slots[i]=ev.cat;mask[i]=ev.cat;}
+      items.push({ev:ev,part:'main'});
+    }
+    if(r.wraps&&eventOccurs(ev,prev)){
+      for(let i=0;i<r.eS;i++){slots[i]=ev.cat;mask[i]=ev.cat;}
+      items.push({ev:ev,part:'spill'});
+    }
+  });
+  return {type:type,slots:slots,mask:mask,items:items};
+}
+
+function upcomingList(state,from,days,limit){
+  const out=[];
+  for(let k=0;k<days&&out.length<limit;k++){
+    const d=addDays(from,k);
+    state.events.forEach(ev=>{if(out.length<limit&&eventOccurs(ev,d))out.push({date:d,ev:ev});});
+  }
+  return out;
+}
+
+function sinceTotals(state,today){
+  const t={s:0,r:0,w:0,t:0,o:0,free:0};
+  let days=0;
+  for(let d=parseISO(state.start);d<=today&&days<3650;d=addDays(d,1)){
+    const h=hoursByCat(dayInfo(state,d).slots);
+    for(const k in t)t[k]+=h[k];
+    days++;
+  }
+  return {days:days,totals:t};
+}
+
+/* แปลงรูปแบบประจำวันเป็นค่าเฉลี่ยของหน้าวางแผนเวลา/ปฏิทิน (ภาระอื่นๆ รวมเข้ากับกิจวัตร) */
+function syncValues(state){
+  const wc=state.workdays.length;
+  const w=hoursByCat(state.tpl.work), o=hoursByCat(state.tpl.off);
+  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+  const half=v=>Math.round(v*2)/2;
+  const sleepAvg=(wc*w.s+(7-wc)*o.s)/7;
+  const routineAvg=(wc*(w.r+w.o)+(7-wc)*(o.r+o.o))/7;
+  return {
+    '4000weeks_sleep_hours':String(clamp(Math.round(sleepAvg),2,10)),
+    '4000weeks_plan_routine':String(clamp(half(routineAvg),0,6)),
+    '4000weeks_plan_workday':String(clamp(half(w.w),0,16)),
+    '4000weeks_plan_workdays':String(clamp(wc,1,7)),
+    '4000weeks_plan_commute':String(clamp(half(w.t),0,4))
+  };
+}
+
+const ISO_RE=/^\d{4}-\d{2}-\d{2}$/, TIME_RE=/^\d{2}:\d{2}$/;
+function cleanSlots(a){
+  if(!Array.isArray(a)||a.length!==SLOTS)return null;
+  const out=[];
+  for(let i=0;i<SLOTS;i++){
+    const v=a[i];
+    if(v===null)out.push(null);
+    else if(typeof v==='string'&&CAT_BY_ID[v])out.push(v);
+    else return null;
+  }
+  return out;
+}
+function validateState(o){
+  if(!o||typeof o!=='object'||o.v!==1)return null;
+  if(typeof o.start!=='string'||!ISO_RE.test(o.start))return null;
+  if(!Array.isArray(o.workdays))return null;
+  const wd=[];
+  o.workdays.forEach(n=>{if(Number.isInteger(n)&&n>=0&&n<=6&&wd.indexOf(n)<0)wd.push(n);});
+  if(!o.tpl)return null;
+  const tw=cleanSlots(o.tpl.work), to=cleanSlots(o.tpl.off);
+  if(!tw||!to)return null;
+  const evs=[];
+  if(!Array.isArray(o.events))return null;
+  for(let i=0;i<o.events.length;i++){
+    const e=o.events[i];
+    if(!e||typeof e.title!=='string'||!CAT_BY_ID[e.cat]||typeof e.date!=='string'||!ISO_RE.test(e.date)||
+       typeof e.start!=='string'||!TIME_RE.test(e.start)||typeof e.end!=='string'||!TIME_RE.test(e.end)||
+       ['none','weekly','monthly'].indexOf(e.repeat)<0)return null;
+    evs.push({id:String(e.id||i),title:e.title.slice(0,40),cat:e.cat,date:e.date,start:e.start,end:e.end,repeat:e.repeat});
+  }
+  return {v:1,start:o.start,workdays:wd,tpl:{work:tw,off:to},events:evs};
+}
+/*PURE-END*/
+
+const $=id=>document.getElementById(id);
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+const fmt=(n,d=0)=>n.toLocaleString('th-TH',{maximumFractionDigits:d});
+const KEY='4000weeks_day_v1';
+
+function defaultState(){
+  const sh=Math.min(10,Math.max(2,Number(store.get('4000weeks_sleep_hours'))||8));
+  const mk=()=>{
+    const a=new Array(SLOTS).fill(null);
+    const n=Math.round(sh*4);
+    for(let k=0;k<n;k++){a[(((28-n+k)%SLOTS)+SLOTS)%SLOTS]='s';}
+    return a;
+  };
+  return {v:1,start:iso(new Date()),workdays:[1,2,3,4,5],tpl:{work:mk(),off:mk()},events:[]};
+}
+function loadState(){
+  const raw=store.get(KEY);
+  if(raw){try{const v=validateState(JSON.parse(raw));if(v)return v;}catch(e){}}
+  return defaultState();
+}
+let state=loadState();
+let mode='view', tplSel='work', brush=null;
+let viewDate=new Date(); viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth(),viewDate.getDate());
+let sinceCache=null;
+
+function save(){store.set(KEY,JSON.stringify(state));sinceCache=null;}
+function syncOthers(){
+  const v=syncValues(state);
+  for(const k in v)store.set(k,v[k]);
+  $('syncNote').textContent='ส่งค่าสรุปไปหน้าวางแผนเวลาและปฏิทินแล้ว (นอน '+v['4000weeks_sleep_hours']+' ชม./วัน · ทำงาน '+v['4000weeks_plan_workday']+' ชม. × '+v['4000weeks_plan_workdays']+' วัน)';
+}
+
+/* ---------- วาดนาฬิกา ---------- */
+const CX=170,CY=170,R1=138,R0=92,RE0=80,RE1=88,RL=156;
+function pt(r,deg){const a=deg*Math.PI/180;return [CX+r*Math.sin(a),CY-r*Math.cos(a)];}
+function sector(r0,r1,a0,a1){
+  const large=(a1-a0)>180?1:0;
+  const p0=pt(r1,a0),p1=pt(r1,a1),p2=pt(r0,a1),p3=pt(r0,a0);
+  return 'M'+p0[0].toFixed(2)+' '+p0[1].toFixed(2)+' A'+r1+' '+r1+' 0 '+large+' 1 '+p1[0].toFixed(2)+' '+p1[1].toFixed(2)+
+         ' L'+p2[0].toFixed(2)+' '+p2[1].toFixed(2)+' A'+r0+' '+r0+' 0 '+large+' 0 '+p3[0].toFixed(2)+' '+p3[1].toFixed(2)+' Z';
+}
+function runPath(r0,r1,run){
+  if(run.len>=SLOTS)return sector(r0,r1,0,180)+' '+sector(r0,r1,180,360);
+  const a0=run.start/SLOTS*360, a1=a0+run.len/SLOTS*360;
+  return sector(r0,r1,a0,a1);
+}
+
+function currentSlots(){
+  if(mode==='edit')return {slots:state.tpl[tplSel],mask:null,items:[],type:tplSel};
+  return dayInfo(state,viewDate);
+}
+
+function drawClock(){
+  const info=currentSlots();
+  let s='';
+  s+='<path d="'+sector(R0,R1,0,180)+' '+sector(R0,R1,180,360)+'" fill="#e9edf5"/>';
+  runsOf(info.slots).forEach(run=>{
+    const c=CAT_BY_ID[run.cat];
+    s+='<path d="'+runPath(R0,R1,run)+'" fill="'+c.color+'"/>';
+  });
+  runsOf(info.slots).forEach(run=>{
+    if(run.len>=4){
+      const mid=(run.start+run.len/2)/SLOTS*360;
+      const p=pt((R0+R1)/2,mid);
+      s+='<text x="'+p[0].toFixed(1)+'" y="'+p[1].toFixed(1)+'" font-size="16" text-anchor="middle" dominant-baseline="central">'+CAT_BY_ID[run.cat].emoji+'</text>';
+    }
+  });
+  if(info.mask){
+    runsOf(info.mask).forEach(run=>{
+      s+='<path d="'+runPath(RE0,RE1,run)+'" fill="'+CAT_BY_ID[run.cat].color+'" stroke="#1f2937" stroke-width="1.5"/>';
+    });
+  }
+  for(let h=0;h<24;h++){
+    const major=h%6===0;
+    const a=h/24*360;
+    const p0=pt(R1+2,a), p1=pt(R1+(major?9:5),a);
+    s+='<line x1="'+p0[0].toFixed(1)+'" y1="'+p0[1].toFixed(1)+'" x2="'+p1[0].toFixed(1)+'" y2="'+p1[1].toFixed(1)+'" stroke="#98a2b3" stroke-width="'+(major?2:1)+'"/>';
+    if(major){
+      const t=pt(RL+8,a);
+      s+='<text x="'+t[0].toFixed(1)+'" y="'+t[1].toFixed(1)+'" font-size="11" fill="#667085" text-anchor="middle" dominant-baseline="central">'+pad(h)+'</text>';
+    }
+  }
+  const now=new Date();
+  const isToday=mode==='view'&&iso(viewDate)===iso(now);
+  if(isToday){
+    const a=(now.getHours()*60+now.getMinutes())/1440*360;
+    const p0=pt(66,a), p1=pt(R1+4,a);
+    s+='<line x1="'+p0[0].toFixed(1)+'" y1="'+p0[1].toFixed(1)+'" x2="'+p1[0].toFixed(1)+'" y2="'+p1[1].toFixed(1)+'" stroke="#1f2937" stroke-width="2.5" stroke-linecap="round"/>';
+  }
+  s+='<circle cx="'+CX+'" cy="'+CY+'" r="64" fill="rgba(255,255,255,.92)" stroke="#dde3ee"/>';
+  let big='',small='';
+  if(mode==='edit'){
+    if(brush==='x'){big='🧽';small='ยางลบ';}
+    else if(brush){big=CAT_BY_ID[brush].emoji;small=CAT_BY_ID[brush].name;}
+    else{big='🎨';small='เลือกกิจกรรม';}
+  }else{
+    big=isToday?pad(now.getHours())+':'+pad(now.getMinutes()):DAYNAMES[viewDate.getDay()]+' '+viewDate.getDate();
+    small=info.type==='work'?'วันทำงาน':'วันหยุด';
+  }
+  s+='<text x="'+CX+'" y="'+(CY-8)+'" font-size="'+(mode==='edit'?'26':'20')+'" font-weight="700" fill="#1f2937" text-anchor="middle" dominant-baseline="central">'+big+'</text>';
+  s+='<text x="'+CX+'" y="'+(CY+22)+'" font-size="11" fill="#667085" text-anchor="middle" dominant-baseline="central">'+small+'</text>';
+  $('clock').innerHTML=s;
+  $('clock').setAttribute('class',(mode==='edit'&&brush)?'brush':'');
+}
+
+function runLabel(slots,slot){
+  const c=slots[slot];
+  if(c===null){return 'เวลาว่าง · '+slotTime(slot);}
+  const run=runsOf(slots).filter(r=>r.cat===c&&((slot-r.start+SLOTS)%SLOTS)<r.len)[0];
+  if(!run)return '';
+  const cat=CAT_BY_ID[c];
+  const end=(run.start+run.len)%SLOTS;
+  return cat.emoji+' '+cat.name+' · '+slotTime(run.start)+'–'+slotTime(end)+' ('+fmt(run.len/4,2)+' ชม.)';
+}
+
+function renderStats(){
+  const info=currentSlots();
+  const h=hoursByCat(info.slots);
+  let s='';
+  CATS.forEach(c=>{
+    if(h[c.id]>0)s+='<div class="row"><span><i class="dot" style="background:'+c.color+'"></i>'+c.emoji+' '+c.name+'</span><span>'+fmt(h[c.id],2)+' ชม.</span></div>';
+  });
+  s+='<div class="row"><span><i class="dot" style="background:'+FREE_COLOR+'"></i>เวลาว่าง (ยังไม่ได้ระบาย)</span><span>'+fmt(h.free,2)+' ชม.</span></div>';
+  $('stats').innerHTML=s;
+}
+
+function renderChips(){
+  let s='';
+  CATS.forEach(c=>{
+    s+='<button type="button" data-b="'+c.id+'" class="'+(brush===c.id?'on':'')+'"><i class="dot" style="background:'+c.color+'"></i>'+c.emoji+' '+c.name+'</button>';
+  });
+  s+='<button type="button" data-b="x" class="'+(brush==='x'?'on':'')+'">🧽 ยางลบ</button>';
+  $('chips').innerHTML=s;
+}
+
+function workdayLabel(){
+  const names=state.workdays.slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(d=>DAYNAMES[d]);
+  return names.length?names.join(' '):'ไม่มี';
+}
+function renderTplBar(){
+  $('tplBar').innerHTML=
+    '<button type="button" data-tpl="work" class="'+(tplSel==='work'?'on':'')+'">วันทำงาน ('+workdayLabel()+')</button>'+
+    '<button type="button" data-tpl="off" class="'+(tplSel==='off'?'on':'')+'">วันหยุด</button>';
+}
+
+function dateLabelText(d){
+  try{
+    return d.toLocaleDateString('th-TH-u-ca-gregory',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  }catch(e){return iso(d);}
+}
+
+function repeatText(r){return r==='weekly'?' · ซ้ำทุกสัปดาห์':r==='monthly'?' · ซ้ำทุกเดือน':'';}
+function esc(t){return String(t).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));}
+
+function renderEvents(){
+  const info=dayInfo(state,viewDate);
+  let s='';
+  if(!info.items.length)s='<p class="note">วันนี้ไม่มีช่วงเวลาพิเศษ</p>';
+  info.items.forEach(it=>{
+    const e=it.ev, c=CAT_BY_ID[e.cat];
+    s+='<div class="ev"><div>'+c.emoji+' '+esc(e.title||c.name)+'<small>'+e.start+'–'+e.end+(it.part==='spill'?' (ต่อจากเมื่อวาน)':'')+repeatText(e.repeat)+'</small></div>'+
+       '<button type="button" data-del="'+esc(e.id)+'">ลบ</button></div>';
+  });
+  $('eventList').innerHTML=s;
+
+  const up=upcomingList(state,new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()),30,8);
+  let u='';
+  if(!up.length)u='<p class="note">ยังไม่มีรายการในอีก 30 วัน</p>';
+  up.forEach(x=>{
+    const c=CAT_BY_ID[x.ev.cat];
+    u+='<div class="ev"><div>'+c.emoji+' '+esc(x.ev.title||c.name)+'<small>'+dateLabelText(x.date)+' · '+x.ev.start+'–'+x.ev.end+'</small></div></div>';
+  });
+  $('upcoming').innerHTML=u;
+}
+
+function renderSince(){
+  const today=new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate());
+  if(!sinceCache)sinceCache=sinceTotals(state,today);
+  const r=sinceCache;
+  if(parseISO(state.start)>today){
+    $('sinceNote').textContent='ยังไม่ถึงวันเริ่มใช้งาน';
+    $('since').innerHTML='';
+    return;
+  }
+  $('sinceNote').textContent='เริ่มใช้งาน '+dateLabelText(parseISO(state.start))+' · ผ่านมา '+fmt(r.days)+' วัน · คำนวณตามรูปแบบปัจจุบัน ไม่ใช่สิ่งที่ทำจริง';
+  let s='';
+  CATS.forEach(c=>{
+    const h=r.totals[c.id];
+    if(h>0)s+='<div class="row"><span><i class="dot" style="background:'+c.color+'"></i>'+c.emoji+' '+c.name+'</span><span>'+fmt(h)+' ชม. ≈ '+fmt(h/24,1)+' วัน</span></div>';
+  });
+  s+='<div class="row"><span><i class="dot" style="background:'+FREE_COLOR+'"></i>เวลาว่าง</span><span>'+fmt(r.totals.free)+' ชม. ≈ '+fmt(r.totals.free/24,1)+' วัน</span></div>';
+  $('since').innerHTML=s;
+}
+
+function renderWorkdayChips(){
+  let s='';
+  [1,2,3,4,5,6,0].forEach(d=>{
+    s+='<button type="button" data-wd="'+d+'" class="'+(state.workdays.indexOf(d)>=0?'on':'')+'">'+DAYNAMES[d]+'</button>';
+  });
+  $('workdayChips').innerHTML=s;
+}
+
+function render(){
+  const isView=mode==='view';
+  $('dateBar').hidden=!isView;
+  $('tplBar').hidden=isView;
+  $('brushBar').hidden=isView;
+  $('eventsPanel').hidden=!isView;
+  $('sincePanel').hidden=!isView;
+  $('dateLabel').textContent=dateLabelText(viewDate);
+  renderTplBar();
+  renderChips();
+  drawClock();
+  renderStats();
+  if(isView){renderEvents();renderSince();}
+}
+
+function setMode(m){
+  mode=m;brush=null;
+  const b=$('modeBar').children;
+  for(let i=0;i<b.length;i++){b[i].className=(b[i].getAttribute('data-mode')===m)?'on':'';}
+  $('clockInfo').textContent='';
+  render();
+}
+
+/* ---------- ลากบนนาฬิกา ---------- */
+let painting=false, lastSlot=null;
+function pointerInfo(e){
+  const rect=$('clock').getBoundingClientRect();
+  const half=rect.width/2;
+  const dx=e.clientX-(rect.left+half), dy=e.clientY-(rect.top+rect.height/2);
+  return {r:Math.hypot(dx,dy)/half, deg:Math.atan2(dx,-dy)*180/Math.PI};
+}
+const clock=$('clock');
+clock.addEventListener('pointerdown',e=>{
+  const p=pointerInfo(e);
+  if(p.r<0.38){if(mode==='edit'){brush=null;render();}return;}
+  if(p.r>1.05)return;
+  const slot=angleToSlot(p.deg);
+  if(mode==='edit'&&brush){
+    painting=true;lastSlot=slot;
+    try{clock.setPointerCapture(e.pointerId);}catch(err){}
+    state.tpl[tplSel][slot]=(brush==='x')?null:brush;
+    drawClock();
+    $('clockInfo').textContent=runLabel(state.tpl[tplSel],slot);
+    e.preventDefault();
+  }else{
+    const info=currentSlots();
+    let txt=runLabel(info.slots,slot);
+    if(info.mask&&info.mask[slot]){
+      const hit=info.items.filter(it=>{
+        const r=evRange(it.ev);
+        return it.part==='spill'?slot<r.eS:(slot>=r.sS&&(r.wraps||slot<r.eS));
+      })[0];
+      if(hit)txt+=' · ⭐ '+(hit.ev.title||CAT_BY_ID[hit.ev.cat].name);
+    }
+    $('clockInfo').textContent=txt;
+  }
+});
+clock.addEventListener('pointermove',e=>{
+  if(!painting)return;
+  const p=pointerInfo(e);
+  if(p.r<0.38||p.r>1.1)return;
+  const slot=angleToSlot(p.deg);
+  if(slot===lastSlot)return;
+  paintBetween(state.tpl[tplSel],lastSlot,slot,(brush==='x')?null:brush);
+  lastSlot=slot;
+  drawClock();
+  $('clockInfo').textContent=runLabel(state.tpl[tplSel],slot);
+});
+function endPaint(){
+  if(!painting)return;
+  painting=false;lastSlot=null;
+  save();syncOthers();render();
+}
+clock.addEventListener('pointerup',endPaint);
+clock.addEventListener('pointercancel',endPaint);
+
+/* ---------- ปุ่มต่างๆ ---------- */
+$('modeBar').addEventListener('click',e=>{
+  const b=e.target.closest?e.target.closest('button'):null;
+  if(b)setMode(b.getAttribute('data-mode'));
+});
+$('chips').addEventListener('click',e=>{
+  const b=e.target.closest?e.target.closest('button'):null;
+  if(!b)return;
+  const v=b.getAttribute('data-b');
+  brush=(brush===v)?null:v;
+  render();
+});
+$('tplBar').addEventListener('click',e=>{
+  const b=e.target.closest?e.target.closest('button'):null;
+  if(!b)return;
+  tplSel=b.getAttribute('data-tpl');
+  $('clockInfo').textContent='';
+  render();
+});
+$('prevDay').addEventListener('click',()=>{viewDate=addDays(viewDate,-1);$('clockInfo').textContent='';render();});
+$('nextDay').addEventListener('click',()=>{viewDate=addDays(viewDate,1);$('clockInfo').textContent='';render();});
+$('todayBtn').addEventListener('click',()=>{const n=new Date();viewDate=new Date(n.getFullYear(),n.getMonth(),n.getDate());$('clockInfo').textContent='';render();});
+
+$('workdayChips').addEventListener('click',e=>{
+  const b=e.target.closest?e.target.closest('button'):null;
+  if(!b)return;
+  const d=Number(b.getAttribute('data-wd'));
+  const i=state.workdays.indexOf(d);
+  if(i>=0)state.workdays.splice(i,1);else state.workdays.push(d);
+  save();syncOthers();renderWorkdayChips();render();
+});
+$('startDate').addEventListener('change',()=>{
+  const v=$('startDate').value;
+  if(!v)return;
+  state.start=v;save();render();
+});
+
+/* ---------- ช่วงเวลาพิเศษ ---------- */
+function fillCatSelect(){
+  let s='';
+  CATS.forEach(c=>{s+='<option value="'+c.id+'">'+c.emoji+' '+c.name+'</option>';});
+  $('evCat').innerHTML=s;
+  $('evCat').value='w';
+}
+function showEvWarn(t){$('evWarn').textContent=t;$('evWarn').hidden=!t;}
+$('evAdd').addEventListener('click',()=>{
+  const cat=$('evCat').value;
+  const start=$('evStart').value, end=$('evEnd').value;
+  const date=$('evDate').value||iso(viewDate);
+  if(!start||!end){showEvWarn('กรุณาใส่เวลาเริ่มและสิ้นสุด');return;}
+  if(start===end){showEvWarn('เวลาเริ่มและสิ้นสุดต้องไม่เท่ากัน');return;}
+  showEvWarn('');
+  const title=$('evTitle').value.trim()||CAT_BY_ID[cat].name;
+  state.events.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:title,cat:cat,date:date,start:start,end:end,repeat:$('evRepeat').value});
+  save();
+  $('evTitle').value='';
+  const target=parseISO(date);
+  viewDate=target;
+  render();
+});
+$('eventList').addEventListener('click',e=>{
+  const b=e.target.closest?e.target.closest('button'):null;
+  if(!b)return;
+  const id=b.getAttribute('data-del');
+  if(!confirm('ลบช่วงเวลาพิเศษนี้ (รวมทุกครั้งที่ซ้ำ)?'))return;
+  state.events=state.events.filter(ev=>ev.id!==id);
+  save();render();
+});
+
+/* ---------- สำรองข้อมูล ---------- */
+function backupMsg(t){$('backupMsg').textContent=t;}
+$('btnExport').addEventListener('click',()=>{
+  const txt=JSON.stringify(state);
+  $('backupText').value=txt;
+  let done=false;
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(()=>backupMsg('คัดลอกแล้ว นำไปวางเก็บไว้ในบันทึกส่วนตัวของคุณ'),()=>backupMsg('คัดลอกอัตโนมัติไม่ได้ ข้อความอยู่ในช่องด้านล่าง กดค้างเพื่อคัดลอกเอง'));
+      done=true;
+    }
+  }catch(err){}
+  if(!done)backupMsg('ข้อความอยู่ในช่องด้านล่าง กดค้างเพื่อคัดลอกเอง');
+});
+$('btnImport').addEventListener('click',()=>{
+  const txt=$('backupText').value.trim();
+  if(!txt){backupMsg('ยังไม่ได้วางข้อความ');return;}
+  let v=null;
+  try{v=validateState(JSON.parse(txt));}catch(err){}
+  if(!v){backupMsg('ข้อความนี้ไม่ใช่ข้อมูลสำรองที่ใช้ได้ ไม่มีอะไรถูกเปลี่ยน');return;}
+  if(!confirm('นำเข้าจะแทนที่ข้อมูลตารางวันปัจจุบันทั้งหมด ต้องการต่อไหม?'))return;
+  state=v;save();syncOthers();
+  $('startDate').value=state.start;
+  renderWorkdayChips();render();
+  backupMsg('นำเข้าสำเร็จ');
+});
+
+/* ---------- เริ่มต้น ---------- */
+fillCatSelect();
+$('evDate').value=iso(viewDate);
+$('startDate').value=state.start;
+renderWorkdayChips();
+render();
+save();
+setInterval(()=>{if(mode==='view'&&!painting&&iso(viewDate)===iso(new Date()))drawClock();},30000);
+
+/* ปัดซ้าย-ขวาเพื่อสลับหน้า (ยังกดแท็บได้เหมือนเดิม)
+   หน้านี้: ปัดไปทางซ้าย = ไปหน้าวางแผนเวลา, ปัดไปทางขวา = กลับหน้าปฏิทิน
+   ไม่ทำงานถ้าเริ่มปัดบนนาฬิกา แถบเลื่อน ช่องกรอก หรือปุ่ม */
+(function(){
+  const NEXT='./plan.html', PREV='./';
+  const main=document.querySelector('main');
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sx=0,sy=0,st=0,ok=false,busy=false;
+
+  try{
+    const s=sessionStorage.getItem('4k_slide');
+    if(s){
+      sessionStorage.removeItem('4k_slide');
+      if(!reduce&&main.animate){
+        main.animate([{opacity:0,transform:'translateX('+(Number(s)*-28)+'px)'},{opacity:1,transform:'none'}],{duration:200,easing:'ease-out'});
+      }
+    }
+  }catch(e){}
+
+  function go(url,sign){
+    if(busy)return;
+    busy=true;
+    try{sessionStorage.setItem('4k_slide',String(sign));}catch(e){}
+    if(reduce||!main.animate){location.href=url;return;}
+    const a=main.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX('+(sign*28)+'px)'}],{duration:160,easing:'ease-in',fill:'forwards'});
+    a.onfinish=()=>{location.href=url;};
+    setTimeout(()=>{location.href=url;},400);
+  }
+
+  window.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1){ok=false;return;}
+    const el=e.target;
+    ok=!(el&&el.closest&&el.closest('input,select,textarea,button,a,label,svg,summary'));
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
+  },{passive:true});
+
+  window.addEventListener('touchend',e=>{
+    if(!ok)return;
+    ok=false;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    if(Date.now()-st>700)return;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2.2)return;
+    if(dx<0&&NEXT)go(NEXT,-1);
+    else if(dx>0&&PREV)go(PREV,1);
+  },{passive:true});
+
+  window.addEventListener('pageshow',e=>{
+    busy=false;
+    if(e.persisted&&main.getAnimations)main.getAnimations().forEach(a=>a.cancel());
+  });
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+</script>
+</body>
+</html>
